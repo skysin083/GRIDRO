@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="g-gujik-yuri-2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE0EC" />
+      <stop offset="100%" stop-color="#FF5BA0" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#g-gujik-yuri-2)" />
+  <circle cx="486" cy="230" r="209" fill="#FFFFFF" opacity="0.13" />
+  <circle cx="546" cy="197" r="255" fill="#FFFFFF" opacity="0.14" />
+  <circle cx="567" cy="714" r="206" fill="#FFFFFF" opacity="0.23" />
+  <circle cx="121" cy="447" r="157" fill="#FFFFFF" opacity="0.25" />
+  <circle cx="356" cy="370" r="151" fill="#FFFFFF" opacity="0.12" />
+  <path d="M0,466 C150,406 450,526 600,466 L600,800 L0,800 Z" fill="#FFFFFF" opacity="0.14" />
+</svg>

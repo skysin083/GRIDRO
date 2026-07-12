@@ -1,0 +1,46 @@
+{
+  "gujik-yeona": [
+    "/dummy-images/gujik-yeona-0.svg",
+    "/dummy-images/gujik-yeona-1.svg",
+    "/dummy-images/gujik-yeona-2.svg"
+  ],
+  "gujik-doha": [
+    "/dummy-images/gujik-doha-0.svg",
+    "/dummy-images/gujik-doha-1.svg"
+  ],
+  "gujik-mina": [
+    "/dummy-images/gujik-mina-0.svg",
+    "/dummy-images/gujik-mina-1.svg",
+    "/dummy-images/gujik-mina-2.svg",
+    "/dummy-images/gujik-mina-3.svg"
+  ],
+  "gujik-hanul": [
+    "/dummy-images/gujik-hanul-0.svg",
+    "/dummy-images/gujik-hanul-1.svg",
+    "/dummy-images/gujik-hanul-2.svg"
+  ],
+  "gujik-jian": [
+    "/dummy-images/gujik-jian-0.svg",
+    "/dummy-images/gujik-jian-1.svg"
+  ],
+  "gujik-seoyeon": [
+    "/dummy-images/gujik-seoyeon-0.svg",
+    "/dummy-images/gujik-seoyeon-1.svg",
+    "/dummy-images/gujik-seoyeon-2.svg"
+  ],
+  "gujik-taeyang": [
+    "/dummy-images/gujik-taeyang-0.svg",
+    "/dummy-images/gujik-taeyang-1.svg"
+  ],
+  "gujik-yuri": [
+    "/dummy-images/gujik-yuri-0.svg",
+    "/dummy-images/gujik-yuri-1.svg",
+    "/dummy-images/gujik-yuri-2.svg",
+    "/dummy-images/gujik-yuri-3.svg"
+  ],
+  "gujik-areum": [
+    "/dummy-images/gujik-areum-0.svg",
+    "/dummy-images/gujik-areum-1.svg",
+    "/dummy-images/gujik-areum-2.svg"
+  ]
+}

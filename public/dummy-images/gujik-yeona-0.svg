@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="g-gujik-yeona-0" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E8E2FF" />
+      <stop offset="100%" stop-color="#7C6CFF" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#g-gujik-yeona-0)" />
+  <circle cx="374" cy="266" r="162" fill="#FFFFFF" opacity="0.18" />
+  <circle cx="207" cy="718" r="220" fill="#FFFFFF" opacity="0.24" />
+  <circle cx="103" cy="728" r="128" fill="#FFFFFF" opacity="0.29" />
+  <circle cx="366" cy="364" r="246" fill="#FFFFFF" opacity="0.24" />
+  <path d="M0,556 C150,496 450,616 600,556 L600,800 L0,800 Z" fill="#FFFFFF" opacity="0.14" />
+</svg>

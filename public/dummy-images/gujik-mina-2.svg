@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="g-gujik-mina-2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD8C2" />
+      <stop offset="100%" stop-color="#FF8A5B" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#g-gujik-mina-2)" />
+  <circle cx="320" cy="36" r="104" fill="#FFFFFF" opacity="0.27" />
+  <circle cx="324" cy="531" r="84" fill="#FFFFFF" opacity="0.28" />
+  <circle cx="328" cy="687" r="133" fill="#FFFFFF" opacity="0.16" />
+  <circle cx="180" cy="168" r="248" fill="#FFFFFF" opacity="0.25" />
+  <path d="M0,636 C150,576 450,696 600,636 L600,800 L0,800 Z" fill="#FFFFFF" opacity="0.14" />
+</svg>

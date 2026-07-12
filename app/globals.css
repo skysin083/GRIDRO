@@ -1,26 +1,163 @@
 @import "tailwindcss";
 
+@import "@fontsource/pretendard/400.css";
+@import "@fontsource/pretendard/500.css";
+@import "@fontsource/pretendard/600.css";
+@import "@fontsource/pretendard/700.css";
+
+@theme {
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --color-primary-50: #fff4ed;
+  --color-primary-100: #ffe6d5;
+  --color-primary-200: #ffc9a8;
+  --color-primary-300: #ffa26f;
+  --color-primary-400: #ff7a38;
+  --color-primary-500: #f96416;
+  --color-primary-600: #e14d0b;
+  --color-primary-700: #ba3b09;
+  --color-primary-800: #942f0f;
+  --color-primary-900: #782a10;
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-info: #2563eb;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(23, 23, 23, 0.07);
+  --shadow-lg: 0 18px 40px rgba(23, 23, 23, 0.12);
+  --shadow-btn: 0 10px 22px rgba(23, 23, 23, 0.18);
+
+  --text-display: 40px;
+  --text-display--line-height: 48px;
+  --text-h1: 32px;
+  --text-h1--line-height: 40px;
+  --text-h2: 32px;
+  --text-h2--line-height: 45px;
+  --text-h3: 20px;
+  --text-h3--line-height: 28px;
+  --text-title: 17px;
+  --text-title--line-height: 25px;
+  --text-body: 15px;
+  --text-body--line-height: 23px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 22px;
+  --text-caption: 12px;
+  --text-caption--line-height: 18px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 0.18s;
+  --dur-base: 0.25s;
+  --dur-slow: 0.4s;
+  --dur-reveal: 0.7s;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-neutral-0);
+  color: var(--color-neutral-800);
+  font-family: var(--font-sans);
+}
+
+.text-hero {
+  font-size: 34px;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+@media (min-width: 900px) {
+  .text-hero {
+    font-size: 46px;
+    line-height: 1.32;
+  }
+}
+
+.text-eyebrow {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary-500);
+}
+
+.card-hover {
+  transition:
+    transform var(--dur-base) var(--ease),
+    border-color var(--dur-base) var(--ease),
+    box-shadow var(--dur-base) var(--ease);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-md);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity var(--dur-reveal) var(--ease),
+    transform var(--dur-reveal) var(--ease);
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 3px;
+}
+
+@keyframes dot-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+.dot-loading span {
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+.dot-loading span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.dot-loading span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }
