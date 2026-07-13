@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bookmark } from "lucide-react";
 import { Profile } from "@/types/profile";
+import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import Card from "@/components/ui/Card";
 import Tag from "@/components/ui/Tag";
 
@@ -46,6 +47,7 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
           <p className="text-[17px] font-semibold text-neutral-900 line-clamp-2 leading-snug">{profile.intro}</p>
           <p className="text-[13px] font-medium text-neutral-400">
             {profile.nickname}
+            {profile.publishedAt && ` · ${formatRelativeTime(profile.publishedAt)}`}
             {profile.careers.length > 0 && ` · 경력 ${profile.careers.length}작품`}
           </p>
           <div className="flex flex-wrap gap-1 pt-0.5">

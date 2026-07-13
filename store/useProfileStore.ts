@@ -7,7 +7,6 @@ export interface Resume {
   profile: Profile;
   createdAt: number;
   isPublished: boolean;
-  lastBumpedAt: number | null;
 }
 
 interface ProfileStore {
@@ -64,27 +63,31 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
         profile: { ...profile, id: newId },
         createdAt: Date.now(),
         isPublished: false,
-        lastBumpedAt: null,
       };
       set({ resumes: [...get().resumes, newResume] });
       return newId;
     },
     deleteResume: (id) => set({ resumes: get().resumes.filter((r) => r.id !== id) }),
+    // publishedAt = "공개한 시각" = "끌올한 시각" (같은 의미, 별도 필드 두지 않는다). 공개 전환마다 갱신.
     publishResume: (id) =>
       set({
-        resumes: get().resumes.map((r) =>
-          r.id === id
-            ? { ...r, isPublished: true, lastBumpedAt: r.lastBumpedAt ?? Date.now() }
-            : { ...r, isPublished: false }
-        ),
+        resumes: get().resumes.map((r) => {
+          if (r.id === id) return { ...r, isPublished: true, profile: { ...r.profile, publishedAt: Date.now() } };
+          if (r.isPublished) return { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } };
+          return r;
+        }),
       }),
     unpublishResume: (id) =>
       set({
-        resumes: get().resumes.map((r) => (r.id === id ? { ...r, isPublished: false } : r)),
+        resumes: get().resumes.map((r) =>
+          r.id === id ? { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } } : r
+        ),
       }),
     bumpResume: (id) =>
       set({
-        resumes: get().resumes.map((r) => (r.id === id ? { ...r, lastBumpedAt: Date.now() } : r)),
+        resumes: get().resumes.map((r) =>
+          r.id === id ? { ...r, profile: { ...r.profile, publishedAt: Date.now() } } : r
+        ),
       }),
   },
 }));

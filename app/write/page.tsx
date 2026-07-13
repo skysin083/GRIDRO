@@ -165,6 +165,8 @@ function WritePageInner() {
       bio,
       isNewcomer,
       careers,
+      // 공개 전환 시점에만 store 액션(publishResume/bumpResume)이 갱신한다 — 작성 폼은 기존 값을 그대로 들고만 있는다.
+      publishedAt: initialProfile?.publishedAt ?? null,
     }),
     [
       resumeId,
@@ -185,6 +187,7 @@ function WritePageInner() {
       bio,
       isNewcomer,
       careers,
+      initialProfile?.publishedAt,
     ]
   );
 

@@ -33,4 +33,6 @@ export interface Profile {
   bio: string;
   isNewcomer: boolean;
   careers: CareerEntry[];
+  /** 공개 전환 시각(끌올 시 갱신). 비공개면 null. 작성(생성) 시각과는 별개 — 작성≠공개 원칙. */
+  publishedAt: number | null;
 }

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useProfileById } from "@/lib/getProfileById";
+import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
 import { CareerEntry } from "@/types/profile";
 import Tag from "@/components/ui/Tag";
@@ -80,7 +81,10 @@ function ProfileDetailInner({ id }: { id: string }) {
       <div className="grid md:grid-cols-[380px_1fr] print:grid-cols-1 gap-12">
         <div className="md:sticky md:top-[88px] print:static h-fit space-y-4">
           <p className="text-[26px] leading-[1.45] font-bold text-neutral-900 line-clamp-2">{profile.intro}</p>
-          <p className="text-[15px] font-semibold text-neutral-500">{profile.nickname}</p>
+          <p className="text-[15px] font-semibold text-neutral-500">
+            {profile.nickname}
+            {profile.publishedAt && ` · ${formatRelativeTime(profile.publishedAt)} 공개`}
+          </p>
 
           <div className="flex flex-wrap gap-1.5">
             {profile.parts.map((tag) => (

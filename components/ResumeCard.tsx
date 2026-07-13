@@ -5,13 +5,10 @@ import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { Resume } from "@/store/useProfileStore";
 import { BUMP_COOLDOWN_MS, isProfileComplete } from "@/store/useProfileStore";
+import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-
-function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
-}
 
 function formatRemaining(ms: number) {
   const totalMinutes = Math.max(0, Math.ceil(ms / 60000));
@@ -51,7 +48,7 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  const remainingMs = resume.lastBumpedAt ? BUMP_COOLDOWN_MS - (now - resume.lastBumpedAt) : 0;
+  const remainingMs = resume.profile.publishedAt ? BUMP_COOLDOWN_MS - (now - resume.profile.publishedAt) : 0;
   const onCooldown = remainingMs > 0;
   const complete = isProfileComplete(resume.profile);
 
@@ -83,7 +80,9 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
         <div className="px-3 pt-3 space-y-1.5">
           <p className="text-body-sm font-bold text-neutral-900">{resume.profile.nickname}</p>
           <div className="flex items-center gap-2">
-            <span className="text-caption text-neutral-400">{formatDate(resume.createdAt)}</span>
+            {resume.isPublished && resume.profile.publishedAt && (
+              <span className="text-caption text-neutral-400">{formatRelativeTime(resume.profile.publishedAt)} 공개</span>
+            )}
             <Badge variant={resume.isPublished ? "primary" : "neutral"}>{resume.isPublished ? "공개 중" : "비공개"}</Badge>
           </div>
         </div>

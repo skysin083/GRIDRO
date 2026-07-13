@@ -15,8 +15,12 @@ export default function FeedPage() {
 
   const published = resumes.find((r) => r.isPublished);
 
+  // publishedAt 최신순(내림차순). 끌올하면 publishedAt이 갱신되어 자동으로 맨 위로 올라온다.
   const feed = useMemo(
-    () => [...(published ? [published.profile] : []), ...dummyProfiles],
+    () =>
+      [...(published ? [published.profile] : []), ...dummyProfiles].sort(
+        (a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0)
+      ),
     [published, dummyProfiles]
   );
 
