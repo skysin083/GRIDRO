@@ -1,17 +1,14 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import PageHeader from "@/components/ui/PageHeader";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 
 const PAINPOINTS = [
   {
-    quote: (
-      <>
-        분명 실력은 있는데, 방사 카페 구직글에 뭘 어떻게 써야
-        <br />
-        컨택으로 이어질지 모르겠어요.
-      </>
-    ),
+    // AJ-1: 플레이스홀더 — 인터뷰 원문 대조 후 최종 문장 확정 필요
+    quote: "그림은 자신 있는데, 방사 카페에 구직글만 쓰려고 하면 뭘 어떻게 써야 할지 막막하더라고요.",
     source: "인터뷰 · 어시 2년차",
   },
   {
@@ -28,19 +25,29 @@ const GUIDE_POINTS = [
   {
     number: "01",
     title: "백지 대신 질문지",
-    description: "필수 4개, 3분",
-    fine: "공정 · 대표 그림 · 장르 · 근무조건",
+    description: (
+      <>
+        무엇을 써야 할지 고민할 필요 없이, 준비된 항목을 채우면 이력서가 완성돼요.{" "}
+        <span className="text-neutral-800 font-bold">필수 항목만 채우면 3분이면 끝나요.</span>
+      </>
+    ),
+    fine: "작업 파트 → 대표 그림 → 장르 → 근무조건",
   },
   {
     number: "02",
     title: "구인자가 보는 순서 그대로",
-    description: "구인자 19명에게 직접 물어본 순서",
+    description: "구인자 27명에게 '가장 먼저 확인하는 게 뭐냐'고 직접 물었어요. 답변에 나온 순서 그대로 폼을 짰어요.",
     fine: "공정 → 그림 → 장르 → 근무조건",
   },
   {
     number: "03",
     title: "이미 쓴 글이 있다면 붙여넣기",
-    description: "방사 카페 등에 써둔 글을 붙여넣으면 AI가 항목별로 나눠 담아요.",
+    description: (
+      <>
+        <span className="text-neutral-800 font-bold">폼에 들어가서 &apos;붙여넣고 시작&apos;을 누르면</span>, 방사 카페 등에
+        써둔 구직글을 AI가 항목별로 나눠 담아요. 채워진 내용은 언제든 직접 고칠 수 있어요.
+      </>
+    ),
     fine: "글만 읽어요. 그림은 분석하지 않아요.",
   },
 ];
@@ -80,10 +87,10 @@ export default function LandingPage() {
               구직 가이드를 준비했어요.
             </h1>
 
-            <p className="text-[17px] leading-[1.72] text-neutral-500">
-              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 구직글이 완성돼요.</span>
+            <p className="text-[17px] leading-[1.6] text-neutral-500">
+              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 이력서가 완성돼요.</span>
               <br />
-              구인자 19명에게 직접 물어본 순서 그대로 정리해뒀어요.
+              구인자 27명에게 직접 물어본 순서 그대로 정리해뒀어요.
             </p>
 
             <div className="flex items-center gap-5 flex-wrap">
@@ -95,57 +102,35 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="border-t border-neutral-200 pt-5 flex flex-wrap gap-x-6 gap-y-2">
-              {["작성 3분", "회원가입 없이 둘러보기", "올리기 전까지 비공개"].map((item) => (
-                <span key={item} className="text-body-sm text-neutral-500 flex items-center gap-2">
-                  <span className="w-[5px] h-[5px] rounded-full bg-primary-300" />
-                  {item}
-                </span>
-              ))}
-            </div>
           </div>
 
+          {/* AJ-3: 실제 ProgressChecklist(components/ui/ProgressChecklist.tsx)의 축약판.
+              실제 완성도 카드 레이아웃·필수 항목명이 바뀌면 이 데모도 함께 갱신할 것. */}
           <div className="group relative">
             <div
-              className="bg-white border border-neutral-200 rounded-lg p-5 rotate-[-1.2deg] transition-transform duration-[.4s] ease-[cubic-bezier(.22,.61,.36,1)] group-hover:rotate-[-1.8deg] group-hover:-translate-y-1"
+              className="bg-white border border-neutral-200 rounded-lg shadow-md p-5 rotate-[-1deg] transition-transform duration-[.4s] ease-[cubic-bezier(.22,.61,.36,1)] group-hover:rotate-0 group-hover:-translate-y-1.5 group-hover:shadow-lg"
             >
-              <p className="text-[11px] font-bold text-neutral-400 tracking-[.06em] mb-2">이미 써둔 구직글</p>
-              <p className="text-body-sm leading-[1.75] text-neutral-500">
-                안녕하세요 채색 어시 구합니다 저는 로맨스 드라마 위주로 작업했고 클스페 포토샵 둘 다 다룰 줄 알아요 마감
-                잘 지키고 연락도 잘 되는 편입니다 포폴은 댓글로 문의주세요...
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 my-4">
-              <span className="flex-1 h-px bg-gradient-to-r from-transparent to-primary-300" />
-              <span className="text-caption font-bold text-primary-600 shrink-0">— AI가 정리해요 —</span>
-              <span className="flex-1 h-px bg-gradient-to-l from-transparent to-primary-300" />
-            </div>
-
-            <div
-              className="bg-white border border-neutral-200 rounded-lg shadow-md p-4 rotate-[.8deg] transition-transform duration-[.4s] ease-[cubic-bezier(.22,.61,.36,1)] group-hover:rotate-0 group-hover:-translate-y-1.5 group-hover:shadow-lg"
-            >
-              <div className="flex gap-3 items-start">
-                <div className="w-[52px] h-[68px] rounded-[10px] bg-neutral-100 overflow-hidden shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/dummy-images/gujik-yeona-0.svg" alt="" className="w-full h-full object-cover object-top" />
-                </div>
-                <div className="min-w-0 space-y-1 pt-1">
-                  <p className="text-body-sm font-semibold text-neutral-900">연아</p>
-                  <p className="text-body-sm text-neutral-600 line-clamp-1">잔잔한 감성 로맨스 채색을 가장 잘합니다.</p>
-                  <div className="flex flex-wrap gap-1 pt-0.5">
-                    <span className="text-caption px-1.5 py-0.5 rounded-sm bg-primary-50 text-primary-700">채색</span>
-                    <span className="text-caption px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600">로맨스</span>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between text-body-sm mb-3">
+                <span className="font-medium text-neutral-800">완성도</span>
+                <span className="text-h3 font-bold text-neutral-900">75%</span>
               </div>
-              <div className="mt-3 pt-3 border-t border-neutral-100">
-                <span
-                  className="inline-flex text-caption font-medium px-2 py-0.5 rounded-pill"
-                  style={{ background: "#EFF6FF", color: "#2563EB" }}
-                >
-                  AI 자동 입력 · 수정할 수 있어요
-                </span>
+              <div className="w-full h-[6px] rounded-pill bg-neutral-100 overflow-hidden mb-4">
+                <div className="h-full bg-primary-500" style={{ width: "75%" }} />
+              </div>
+              <div className="space-y-3">
+                {["작업 파트", "대표 그림", "선호 장르"].map((label) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <Check size={16} className="text-primary-500 shrink-0" />
+                    <span className="text-body-sm text-neutral-700">{label}</span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full border-2 border-neutral-300 shrink-0" />
+                  <span className="text-body-sm text-neutral-700">근무형태</span>
+                </div>
+                <div className="bg-primary-50 rounded-md px-3 py-2 ml-6">
+                  <p className="text-[13px] text-primary-700">채색 전·후 비교컷이 있으면 실력이 한눈에 보여요</p>
+                </div>
               </div>
             </div>
           </div>
@@ -157,7 +142,6 @@ export default function LandingPage() {
         <div className="max-w-[1160px] mx-auto px-5 md:px-10">
           <ScrollReveal>
             <PageHeader
-              eyebrow="WHY GRIDRO"
               title="실력이 아니라, 쓰는 방법이 막혔던 거예요."
               lead="그림도, 이력도 이미 있어요. 정리할 방법만 없었을 뿐이에요."
             />
@@ -170,7 +154,7 @@ export default function LandingPage() {
                   <span className="block text-[26px] font-extrabold text-primary-200 transition-colors duration-[.18s] group-hover:text-primary-400">
                     &ldquo;
                   </span>
-                  <p className="text-[16px] leading-[1.7] text-neutral-700 mt-2">{p.quote}</p>
+                  <p className="text-left text-[16px] leading-[1.7] text-neutral-700 mt-2">{p.quote}</p>
                   <p className="text-caption font-bold text-neutral-400 mt-4">{p.source}</p>
                 </div>
               </ScrollReveal>
@@ -178,7 +162,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-body-sm font-semibold text-neutral-400 text-center mt-10">
-            설문 구직자 56명 · 구인자 19명 / 심층 인터뷰 6명
+            설문 구직자 66명 · 구인자 27명 / 심층 인터뷰 6명
           </p>
         </div>
       </section>
@@ -187,7 +171,7 @@ export default function LandingPage() {
       <section className="bg-white py-[76px] md:py-[112px]">
         <div className="max-w-[1160px] mx-auto px-5 md:px-10">
           <ScrollReveal>
-            <PageHeader eyebrow="구직 가이드" title="세 가지만 바꿨어요." lead="막막한 백지 대신, 채우면 되는 질문지로." />
+            <PageHeader title="세 가지만 바꿨어요." lead="막막한 백지 대신, 채우면 되는 질문지로." />
           </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
@@ -211,48 +195,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* I-5 작성 != 공개 (정적 UI, 실제 토글 동작 없음) */}
+      {/* I-5 작성 != 공개 (AJ-2: 실제 이력서 카드 상태 3단계 — 설명용 정적 UI, 실제 동작 없음) */}
       <section className="bg-neutral-900 py-[76px] md:py-[112px]">
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 grid md:grid-cols-2 gap-12 md:gap-[64px] items-center">
           <ScrollReveal>
-            <p className="text-eyebrow" style={{ color: "var(--color-primary-400)" }}>
-              그리드로만의 방식
-            </p>
-            <h2 className="text-[25px] md:text-h2 font-extrabold tracking-[-0.03em] text-white mt-2">
+            <h2 className="text-[25px] md:text-h2 font-extrabold tracking-[-0.03em] text-white">
               써두는 것과 공개하는 것은
               <br />
               다른 일이에요.
             </h2>
             <p className="text-body leading-[1.75] text-neutral-400 mt-3">
-              올리기 전까지 나만 보고, 올리고 내리는 건 스위치 한 번.
+              올리기 전까지 나만 보고, 올린 뒤에도 끌올 한 번이면 다시 맨 위로.
             </p>
           </ScrollReveal>
 
           <ScrollReveal delayMs={90}>
             <div className="flex flex-col gap-4">
               <div
-                className="flex items-center gap-4 rounded-md px-5 py-4 border transition-colors duration-[.18s] hover:translate-x-1"
+                className="flex items-center justify-between gap-4 rounded-md px-5 py-4 border transition-colors duration-[.18s] hover:translate-x-1"
                 style={{ background: "#1F1F1F", borderColor: "#2E2E2E" }}
               >
-                <span className="w-11 h-6 rounded-pill bg-neutral-600 relative shrink-0">
-                  <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white" />
-                </span>
                 <div>
-                  <p className="text-[15px] font-bold text-white">저장만 해두기</p>
-                  <p className="text-caption text-neutral-400">이력서 탭에 비공개로 보관돼요</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[15px] font-bold text-white">임시 저장</p>
+                    <Badge variant="neutral">비공개</Badge>
+                  </div>
+                  <p className="text-caption text-neutral-400 mt-1">필수 항목을 다 안 채워도 저장돼요</p>
                 </div>
               </div>
 
               <div
-                className="flex items-center gap-4 rounded-md px-5 py-4 border transition-colors duration-[.18s] hover:translate-x-1"
+                className="flex items-center justify-between gap-4 rounded-md px-5 py-4 border transition-colors duration-[.18s] hover:translate-x-1"
                 style={{ background: "#1F1F1F", borderColor: "#2E2E2E" }}
               >
-                <span className="w-11 h-6 rounded-pill bg-primary-500 relative shrink-0">
-                  <span className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-white" />
-                </span>
                 <div>
-                  <p className="text-[15px] font-bold text-white">구직란에 올리기</p>
-                  <p className="text-caption text-neutral-400">구인자에게 카드로 노출돼요</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[15px] font-bold text-white">구직란에 올리기</p>
+                    <Badge variant="primary">공개 중</Badge>
+                  </div>
+                  <p className="text-caption text-neutral-400 mt-1">구인자에게 카드로 노출돼요</p>
+                </div>
+              </div>
+
+              <div
+                className="flex items-center justify-between gap-4 rounded-md px-5 py-4 border transition-colors duration-[.18s] hover:translate-x-1"
+                style={{ background: "#1F1F1F", borderColor: "#2E2E2E" }}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-body-sm font-medium text-white bg-primary-500 px-3 py-1.5 rounded-pill">끌올</span>
+                  </div>
+                  <p className="text-caption text-neutral-400 mt-1">24시간마다 한 번, 피드 맨 위로 올라가요</p>
                 </div>
               </div>
             </div>
@@ -265,7 +258,6 @@ export default function LandingPage() {
         <div className="max-w-[1160px] mx-auto px-5 md:px-10">
           <ScrollReveal>
             <PageHeader
-              eyebrow="사용성 테스트"
               title="먼저 써본 분들의 이야기"
               lead="그림 프리랜서 6명과 함께 작성 과정을 테스트했어요."
             />
@@ -296,7 +288,6 @@ export default function LandingPage() {
           <ScrollReveal>
             <PageHeader
               align="center"
-              eyebrow="지금 시작하기"
               title={<span className="text-[36px]">3분이면, 컨택받을 준비가 끝나요.</span>}
               lead="지금 쓰고, 올리는 건 나중에 정해도 괜찮아요."
             />

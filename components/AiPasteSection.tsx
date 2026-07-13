@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 
-export default function AiPasteSection() {
+export default function AiPasteSection({ onComplete }: { onComplete?: () => void }) {
   const [text, setText] = useState("");
   const [processing, setProcessing] = useState(false);
 
   const handleClick = () => {
     setProcessing(true);
-    setTimeout(() => setProcessing(false), 1200);
+    setTimeout(() => {
+      setProcessing(false);
+      onComplete?.();
+    }, 1200);
   };
 
   return (

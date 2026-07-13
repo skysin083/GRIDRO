@@ -24,9 +24,8 @@ export default function FeedPage() {
     if (filters.part && !p.parts.includes(filters.part)) return false;
     if (filters.genre && !p.preferredGenres.includes(filters.genre)) return false;
     if (filters.workType && p.workType !== filters.workType) return false;
-    if (filters.tool && !p.tools.some((t) => t.name === "Clip Studio Paint")) return false;
-    if (filters.communication && !p.authorTraits.includes("소통 원활")) return false;
-    if (filters.revision && !p.authorTraits.includes("수정 대응 빠름")) return false;
+    if (filters.csp && !p.tools.includes("Clip Studio Paint")) return false;
+    if (filters.career && p.careers.length === 0) return false;
     return true;
   });
 
@@ -35,9 +34,7 @@ export default function FeedPage() {
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 space-y-8">
       <PageHeader
-        eyebrow="구직란"
         title="어떤 작가를 찾고 있나요?"
-        lead="공정과 장르로 좁혀서 원하는 작가를 찾아보세요."
         action={
           <Button href={resumes.length > 0 ? "/my" : "/write"} variant="dark-pill" arrow>
             구직하기
@@ -46,8 +43,8 @@ export default function FeedPage() {
       />
 
       <div className="sticky top-16 z-20 bg-white/[.95] backdrop-blur-sm border-b border-neutral-200 py-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <FilterBar filters={filters} onChange={setFilters} />
+        <div className="flex items-center justify-between gap-4">
+          <FilterBar filters={filters} onChange={setFilters} resultCount={filtered.length} />
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-body-sm font-semibold text-neutral-400">작가 {filtered.length}명</span>
             {hasActiveFilter && (

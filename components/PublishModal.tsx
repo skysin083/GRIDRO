@@ -1,6 +1,6 @@
 import { Profile } from "@/types/profile";
 import Modal from "@/components/ui/Modal";
-import Button from "@/components/ui/Button";
+import ModalButton from "@/components/ui/ModalButton";
 import Tag from "@/components/ui/Tag";
 
 interface PublishModalProps {
@@ -26,8 +26,11 @@ export default function PublishModal({ profile, onPublish, onSaveOnly, onEditMor
           )}
         </div>
         <div className="p-3 space-y-1.5">
-          <p className="text-body-sm font-semibold text-neutral-900">{profile.nickname}</p>
-          <p className="text-body-sm text-neutral-600 line-clamp-1">{profile.intro}</p>
+          <p className="text-[17px] font-semibold text-neutral-900 line-clamp-2 leading-snug">{profile.intro}</p>
+          <p className="text-[13px] font-medium text-neutral-400">
+            {profile.nickname}
+            {profile.careers.length > 0 && ` · 경력 ${profile.careers.length}작품`}
+          </p>
           <div className="flex flex-wrap gap-1">
             {topParts.map((tag) => (
               <Tag key={tag} variant="part">
@@ -43,17 +46,13 @@ export default function PublishModal({ profile, onPublish, onSaveOnly, onEditMor
         </div>
       </div>
 
-      <p className="text-caption text-neutral-500">
-        지금 공개할지, 이력서 탭에 저장만 해둘지 선택할 수 있어요. 나중에 언제든 바꿀 수 있습니다.
-      </p>
-
       <div className="flex flex-col gap-2">
-        <Button variant="dark-pill" className="w-full" onClick={onPublish}>
+        <ModalButton variant="primary" onClick={onPublish}>
           구직란에 올리기
-        </Button>
-        <Button variant="outline" className="w-full" onClick={onSaveOnly}>
+        </ModalButton>
+        <ModalButton variant="secondary" onClick={onSaveOnly}>
           저장하고 둘러보기
-        </Button>
+        </ModalButton>
         <button type="button" onClick={onEditMore} className="text-caption text-neutral-400 underline mt-1">
           다시 수정하기
         </button>

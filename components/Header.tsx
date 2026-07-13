@@ -15,14 +15,14 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/[.82] backdrop-blur-md">
+    <header className="print:hidden sticky top-0 z-30 border-b border-neutral-200 bg-white">
       <div className="max-w-[1160px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between gap-8">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-12">
           <Link href="/" className="text-h3 font-bold text-primary-500 shrink-0">
             GRIDRO
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-6">
+          <nav className="hidden sm:flex items-center gap-9">
             {NAV_TABS.map((tab) => {
               if (!tab.href) {
                 return (

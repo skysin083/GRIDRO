@@ -3,26 +3,23 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useProfileStore, MAX_RESUMES } from "@/store/useProfileStore";
-import { CareerEntry, Profile, ToolLevel, ToolSkill, WorkStyle } from "@/types/profile";
+import { CareerEntry, Profile, WorkStyle } from "@/types/profile";
 import {
   PARTS,
   GENRES,
   TOOLS,
-  TOOL_LEVELS,
   WORK_STYLES,
   AUTHOR_TRAITS,
   WORK_TYPES,
   CONTACT_TIMES,
-  FIELD_TOOLTIPS,
   PART_UPLOAD_TIPS,
 } from "@/lib/constants";
 import UploadSlot from "@/components/UploadSlot";
 import TagSelect from "@/components/TagSelect";
-import Tooltip from "@/components/Tooltip";
+import GenreSelect from "@/components/GenreSelect";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
-import CollapsibleSection from "@/components/ui/CollapsibleSection";
 import ProgressChecklist, { ChecklistItem } from "@/components/ui/ProgressChecklist";
 import CareerFields from "@/components/CareerFields";
 import AiPasteSection from "@/components/AiPasteSection";
@@ -35,7 +32,7 @@ function SingleSelectChips<T extends string>({
 }: {
   options: readonly T[];
   value: T | "";
-  onChange: (v: T) => void;
+  onChange: (v: T | "") => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -43,7 +40,7 @@ function SingleSelectChips<T extends string>({
         <button
           key={option}
           type="button"
-          onClick={() => onChange(option)}
+          onClick={() => onChange(value === option ? "" : option)}
           className={`text-body-sm px-3 py-1.5 rounded-pill border transition-colors duration-[.18s] ${
             value === option
               ? "bg-primary-50 text-primary-700 border-primary-500"
@@ -57,30 +54,57 @@ function SingleSelectChips<T extends string>({
   );
 }
 
+// AD-3: 폼 전체 필드가 동일한 라벨 문법(15px/600 + 13px 캡션)을 쓴다. h3급 대형 섹션 타이틀은 없다.
+// AG-3: 라벨↔캡션 6px, (라벨/캡션)↔인풋 10px
 function Field({
   label,
-  fieldKey,
   required,
   id,
+  caption,
+  headerAction,
   children,
 }: {
   label: string;
-  fieldKey: string;
   required?: boolean;
   id?: string;
+  caption?: string;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="space-y-2 scroll-mt-24">
-      <h3 className="text-body-sm font-semibold text-neutral-800">
-        {label}
-        {required && <span className="text-danger">*</span>}
-        <Tooltip text={FIELD_TOOLTIPS[fieldKey]} />
-      </h3>
+    <section id={id} className="space-y-2.5 scroll-mt-24">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-[15px] font-semibold text-neutral-800">
+            {label}
+            {required && <span className="text-danger">*</span>}
+          </h3>
+          {caption && <p className="text-[13px] text-neutral-400 mt-1.5">{caption}</p>}
+        </div>
+        {headerAction}
+      </div>
       {children}
     </section>
   );
 }
+
+// AD-1: 체크리스트는 이 배열(=폼 순서) 하나에서만 파생된다. 폼 순서를 바꾸면 이 배열만 옮기면 된다.
+// AH-7 순서 반영: 활동명·연락처·한줄소개·소개·파트·그림·장르(선호/불호)·툴·근무형태·경력·연락시간대·특징
+const FIELD_ORDER = [
+  { key: "nickname", label: "활동명", required: true },
+  { key: "email", label: "연락처(이메일)", required: true },
+  { key: "intro", label: "한줄소개", required: true },
+  { key: "bio", label: "소개", required: false },
+  { key: "parts", label: "작업 파트", required: true },
+  { key: "images", label: "대표 그림", required: true },
+  { key: "preferredGenres", label: "선호 장르", required: true },
+  { key: "dislikedGenres", label: "불호 장르", required: true },
+  { key: "tools", label: "사용 툴", required: true },
+  { key: "workType", label: "근무형태", required: true },
+  { key: "careers", label: "경력", required: false },
+  { key: "contactTime", label: "연락 가능 시간대", required: false },
+  { key: "authorTraits", label: "작가 특징", required: false },
+] as const;
 
 const AUTOSAVE_DELAY_MS = 800;
 
@@ -95,6 +119,7 @@ function WritePageInner() {
   // D-7: 수정 모드 진입 시 기존 이력서 데이터로 초기값을 채운다 (최초 렌더 1회 기준 스냅샷).
   const initialProfile = (editId ? resumes.find((r) => r.id === editId)?.profile : undefined) ?? null;
 
+  const [formMode, setFormMode] = useState<"manual" | "paste">("manual");
   const [resumeId, setResumeId] = useState<string | null>(editId);
   const [nickname, setNickname] = useState(initialProfile?.nickname ?? "");
   const [email, setEmail] = useState(initialProfile?.email ?? "");
@@ -104,10 +129,7 @@ function WritePageInner() {
   const [parts, setParts] = useState<string[]>(initialProfile?.parts ?? []);
   const [preferredGenres, setPreferredGenres] = useState<string[]>(initialProfile?.preferredGenres ?? []);
   const [dislikedGenres, setDislikedGenres] = useState<string[]>(initialProfile?.dislikedGenres ?? []);
-  const [toolNames, setToolNames] = useState<string[]>(initialProfile?.tools.map((t) => t.name) ?? []);
-  const [toolLevels, setToolLevels] = useState<Record<string, ToolLevel>>(
-    initialProfile ? Object.fromEntries(initialProfile.tools.map((t) => [t.name, t.level])) : {}
-  );
+  const [toolNames, setToolNames] = useState<string[]>(initialProfile?.tools ?? []);
   const [workStyle, setWorkStyle] = useState<WorkStyle | "">(initialProfile?.workStyle ?? "");
   const [authorTraits, setAuthorTraits] = useState<string[]>(initialProfile?.authorTraits ?? []);
   const [authorTraitsNote, setAuthorTraitsNote] = useState(initialProfile?.authorTraitsNote ?? "");
@@ -118,32 +140,10 @@ function WritePageInner() {
   const [careers, setCareers] = useState<CareerEntry[]>(initialProfile?.careers ?? []);
   const [showModal, setShowModal] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-
-  const toggleToolName = (names: string[]) => {
-    setToolNames(names);
-    setToolLevels((prev) => {
-      const next: Record<string, ToolLevel> = {};
-      for (const name of names) next[name] = prev[name] ?? "중급";
-      return next;
-    });
-  };
-
-  const tools: ToolSkill[] = toolNames.map((name) => ({
-    name,
-    level: toolLevels[name] ?? "중급",
-  }));
+  const [genreError, setGenreError] = useState<"preferredGenres" | "dislikedGenres" | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
 
   const canCreateNew = editId !== null || resumes.length < MAX_RESUMES;
-
-  const canSubmit =
-    canCreateNew &&
-    images.length > 0 &&
-    parts.length > 0 &&
-    nickname.trim() !== "" &&
-    email.trim() !== "" &&
-    intro.trim() !== "" &&
-    workType !== "" &&
-    tools.length > 0;
 
   const draftProfile: Profile = useMemo(
     () => ({
@@ -154,7 +154,7 @@ function WritePageInner() {
       parts,
       preferredGenres,
       dislikedGenres,
-      tools,
+      tools: toolNames,
       workStyle: (workStyle || "무관") as WorkStyle,
       authorTraits,
       authorTraitsNote,
@@ -174,7 +174,7 @@ function WritePageInner() {
       parts,
       preferredGenres,
       dislikedGenres,
-      tools,
+      toolNames,
       workStyle,
       authorTraits,
       authorTraitsNote,
@@ -188,7 +188,7 @@ function WritePageInner() {
     ]
   );
 
-  // M-9: 디바운스 자동저장 (세션 스토어에만 반영, 실제 항목 하나라도 채워졌을 때부터)
+  // 디바운스 자동저장 (세션 스토어에만 반영, 실제 항목 하나라도 채워졌을 때부터)
   useEffect(() => {
     if (!canCreateNew) return;
     const hasAnyInput = nickname || email || intro || images.length > 0 || parts.length > 0;
@@ -202,23 +202,52 @@ function WritePageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftProfile]);
 
-  const checklistItems: ChecklistItem[] = [
-    { label: "활동명", done: nickname.trim() !== "", sectionId: "field-nickname" },
-    { label: "연락처(이메일)", done: email.trim() !== "", sectionId: "field-email" },
-    { label: "한줄소개", done: intro.trim() !== "", sectionId: "field-intro" },
-    { label: "대표 그림", done: images.length > 0, sectionId: "field-images" },
-    { label: "작업 파트", done: parts.length > 0, sectionId: "field-parts" },
-    { label: "근무형태", done: workType !== "", sectionId: "field-workType" },
-    { label: "사용 툴", done: tools.length > 0, sectionId: "field-tools" },
-    {
-      label: "선호 장르",
-      done: preferredGenres.length > 0,
-      caption: "쓰면 컨택이 빨라져요",
-      sectionId: "field-preferredGenres",
-    },
-    { label: "소개", done: bio.trim() !== "", caption: "쓰면 컨택이 빨라져요", sectionId: "field-bio" },
-    { label: "경력", done: careers.length > 0 || isNewcomer, caption: "쓰면 컨택이 빨라져요", sectionId: "field-careers" },
-  ];
+  // AD-1: FIELD_ORDER(=폼 순서) 하나에서 체크리스트·필수 검증을 전부 파생한다.
+  const doneMap: Record<(typeof FIELD_ORDER)[number]["key"], boolean> = {
+    nickname: nickname.trim() !== "",
+    email: email.trim() !== "",
+    intro: intro.trim() !== "",
+    bio: bio.trim() !== "",
+    parts: parts.length > 0,
+    images: images.length > 0,
+    preferredGenres: preferredGenres.length > 0,
+    dislikedGenres: dislikedGenres.length > 0,
+    tools: toolNames.length > 0,
+    workType: workType !== "",
+    contactTime: contactTime !== "" || contactNote.trim() !== "",
+    careers: careers.length > 0 || isNewcomer,
+    authorTraits: authorTraits.length > 0 || authorTraitsNote.trim() !== "",
+  };
+  const checklistItems: ChecklistItem[] = FIELD_ORDER.filter((f) => f.required || doneMap[f.key]).map((f) => ({
+    label: f.label,
+    done: doneMap[f.key],
+    sectionId: `field-${f.key}`,
+  }));
+  const requiredFields = FIELD_ORDER.filter((f) => f.required);
+  const checklistPercent = Math.round(
+    (requiredFields.filter((f) => doneMap[f.key]).length / requiredFields.length) * 100
+  );
+  const handleSubmitClick = () => {
+    const firstMissing = requiredFields.find((f) => !doneMap[f.key]);
+    if (firstMissing) {
+      document.getElementById(`field-${firstMissing.key}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (firstMissing.key === "preferredGenres" || firstMissing.key === "dislikedGenres") {
+        setGenreError(firstMissing.key);
+      }
+      return;
+    }
+    setGenreError(null);
+    setShowModal(true);
+  };
+
+  // AH-9: 검증 없이 현재 상태를 비공개 이력서로 저장 (기존 "비공개" 상태 재사용, 모달 없음)
+  const handleTempSave = () => {
+    const savedId = saveResume(resumeId, draftProfile);
+    if (!resumeId) setResumeId(savedId);
+    setLastSavedAt(Date.now());
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
 
   const handlePublish = () => {
     const savedId = saveResume(resumeId, draftProfile);
@@ -231,7 +260,7 @@ function WritePageInner() {
     router.push("/my");
   };
 
-  const uploadTip = parts[0] ? PART_UPLOAD_TIPS[parts[0]] : undefined;
+  const uploadTips = parts.slice(0, 2).map((p) => PART_UPLOAD_TIPS[p]).filter(Boolean);
 
   if (!canCreateNew) {
     return (
@@ -248,154 +277,191 @@ function WritePageInner() {
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 pb-28">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
-        <div className="max-w-[720px] space-y-12">
-          <PageHeader eyebrow="이력서" title="구직글을 만들어볼게요." lead="필수 항목만 채우면 3분이면 끝나요." />
+        <div className="max-w-[720px] space-y-5">
+          <PageHeader title="이력서를 만들어볼게요." lead="필수 항목만 채우면 3분이면 끝나요." />
 
-          <div className="space-y-6 border-t border-neutral-200 pt-6">
-            <h3 className="text-h3 font-semibold text-neutral-900">필수 정보</h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Field label="활동명" fieldKey="nickname" required id="field-nickname">
-                <Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="닉네임을 입력하세요" maxLength={20} />
-              </Field>
-              <Field label="연락처(이메일)" fieldKey="email" required id="field-email">
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@example.com" />
-              </Field>
-            </div>
-
-            <Field label="한줄소개" fieldKey="intro" required id="field-intro">
-              <div className="relative">
-                <Input
-                  value={intro}
-                  onChange={(e) => setIntro(e.target.value.slice(0, 40))}
-                  placeholder="카드에 노출될 한 문장을 적어주세요 (최대 40자)"
-                  maxLength={40}
-                  className="pr-14"
-                />
-                <span
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-caption font-semibold ${
-                    intro.length >= 40 ? "text-danger" : intro.length >= 32 ? "text-primary-500" : "text-neutral-400"
-                  }`}
-                >
-                  {intro.length}/40
-                </span>
-              </div>
-            </Field>
-
-            <Field label="소개" fieldKey="bio" id="field-bio">
-              <div className="relative">
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value.slice(0, 500))}
-                  placeholder="작업 스타일, 협업 방식 등 자유롭게 적어주세요"
-                  maxLength={500}
-                  rows={4}
-                  className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-50 resize-none"
-                />
-                <span
-                  className={`absolute right-3 bottom-2 text-caption font-semibold ${
-                    bio.length >= 500 ? "text-danger" : bio.length >= 400 ? "text-primary-500" : "text-neutral-400"
-                  }`}
-                >
-                  {bio.length}/500
-                </span>
-              </div>
-            </Field>
-
-            <Field label="작업 파트" fieldKey="parts" required id="field-parts">
-              <TagSelect options={PARTS} selected={parts} onChange={setParts} />
-            </Field>
-
-            <Field label="선호 장르" fieldKey="preferredGenres" id="field-preferredGenres">
-              <TagSelect options={GENRES} selected={preferredGenres} onChange={setPreferredGenres} />
-            </Field>
-
-            <Field label="불호 장르" fieldKey="dislikedGenres">
-              <TagSelect options={GENRES} selected={dislikedGenres} onChange={setDislikedGenres} />
-            </Field>
-
-            <Field label="대표 그림 (최대 10장)" fieldKey="images" required id="field-images">
-              <UploadSlot images={images} onChange={setImages} tip={uploadTip} />
-            </Field>
-
-            <Field label="근무형태" fieldKey="workType" required id="field-workType">
-              <SingleSelectChips options={WORK_TYPES} value={workType} onChange={setWorkType} />
-            </Field>
-
-            <Field label="사용 툴" fieldKey="tools" required id="field-tools">
-              <TagSelect options={TOOLS} selected={toolNames} onChange={toggleToolName} />
-              {toolNames.length > 0 && (
-                <div className="space-y-2 pt-1">
-                  {toolNames.map((name) => (
-                    <div key={name} className="flex items-center gap-2 text-body-sm">
-                      <span className="w-36 text-neutral-600">{name}</span>
-                      <SingleSelectChips
-                        options={TOOL_LEVELS}
-                        value={toolLevels[name] ?? "중급"}
-                        onChange={(level) => setToolLevels((prev) => ({ ...prev, [name]: level }))}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Field>
-
-            <section id="field-careers" className="space-y-3 scroll-mt-24">
-              <div className="flex items-center justify-between">
-                <h3 className="text-body-sm font-semibold text-neutral-800">경력 사항</h3>
-                <label className="flex items-center gap-1.5 text-body-sm text-neutral-500 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={isNewcomer}
-                    onChange={(e) => setIsNewcomer(e.target.checked)}
-                    className="accent-primary-500"
-                  />
-                  신입
-                </label>
-              </div>
-              <CareerFields careers={careers} onChange={setCareers} isNewcomer={isNewcomer} />
-            </section>
+          {/* AI 붙여넣기 세그먼트 탭 */}
+          <div className="inline-flex bg-neutral-100 rounded-md p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => setFormMode("manual")}
+              className={`px-4 py-2 rounded-md text-body-sm font-medium transition-all duration-[.18s] ${
+                formMode === "manual" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"
+              }`}
+            >
+              처음부터 작성
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormMode("paste")}
+              className={`px-4 py-2 rounded-md text-body-sm font-medium transition-all duration-[.18s] ${
+                formMode === "paste" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500"
+              }`}
+            >
+              붙여넣고 시작
+            </button>
           </div>
 
-          <CollapsibleSection title="작업물 성향" caption="쓰면 컨택이 빨라져요">
-            <SingleSelectChips options={WORK_STYLES} value={workStyle} onChange={setWorkStyle} />
-          </CollapsibleSection>
+          {formMode === "paste" ? (
+            <AiPasteSection onComplete={() => setFormMode("manual")} />
+          ) : (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Field label="활동명" required id="field-nickname">
+                  <Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="활동명/작가명을 입력하세요" maxLength={20} />
+                </Field>
+                <Field label="연락처(이메일)" required id="field-email">
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@example.com" />
+                </Field>
+              </div>
 
-          <CollapsibleSection title="작가 특징" caption="쓰면 컨택이 빨라져요">
-            <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
-            <Input
-              value={authorTraitsNote}
-              onChange={(e) => setAuthorTraitsNote(e.target.value)}
-              placeholder="여기에 없는 특징을 직접 적어주세요"
-              className="mt-3"
-            />
-          </CollapsibleSection>
+              <Field label="한줄소개" required id="field-intro">
+                <div className="relative">
+                  <Input
+                    value={intro}
+                    onChange={(e) => setIntro(e.target.value.slice(0, 40))}
+                    placeholder="내 이력서의 제목이에요. 어떤 작업을 하는지 한 문장으로 적어주세요"
+                    maxLength={40}
+                    className="pr-14"
+                  />
+                  <span
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-caption font-semibold ${
+                      intro.length >= 40 ? "text-danger" : intro.length >= 32 ? "text-primary-500" : "text-neutral-400"
+                    }`}
+                  >
+                    {intro.length}/40
+                  </span>
+                </div>
+              </Field>
 
-          <CollapsibleSection title="연락 가능 시간대" caption="쓰면 컨택이 빨라져요">
-            <SingleSelectChips options={CONTACT_TIMES} value={contactTime} onChange={setContactTime} />
-            <Input
-              value={contactNote}
-              onChange={(e) => setContactNote(e.target.value)}
-              placeholder="여기에 없는 시간대를 직접 적어주세요"
-              className="mt-3"
-            />
-          </CollapsibleSection>
+              <Field label="소개" id="field-bio">
+                <div className="relative">
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value.slice(0, 500))}
+                    placeholder="작업 스타일이나 협업 방식을 자유롭게 적어주세요"
+                    maxLength={500}
+                    rows={4}
+                    className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-50 resize-none"
+                  />
+                  <span
+                    className={`absolute right-3 bottom-2 text-caption font-semibold ${
+                      bio.length >= 500 ? "text-danger" : bio.length >= 400 ? "text-primary-500" : "text-neutral-400"
+                    }`}
+                  >
+                    {bio.length}/500
+                  </span>
+                </div>
+              </Field>
 
-          <AiPasteSection />
+              <Field label="작업 파트" required id="field-parts" caption="일하고 싶은 파트부터 순서대로 골라주세요">
+                <TagSelect options={PARTS} selected={parts} onChange={setParts} rankBadges={2} />
+              </Field>
+
+              <div id="field-images" className="scroll-mt-24">
+                <UploadSlot images={images} onChange={setImages} tips={uploadTips} label="대표 그림" required />
+              </div>
+
+              <Field label="선호 장르" required id="field-preferredGenres" caption="1·2순위를 정해두면 맞는 작품을 만나기 쉬워요">
+                <GenreSelect
+                  options={GENRES}
+                  selected={preferredGenres}
+                  onChange={(next) => {
+                    setPreferredGenres(next);
+                    if (next.length > 0) setGenreError((cur) => (cur === "preferredGenres" ? null : cur));
+                  }}
+                  rankBadges={2}
+                  error={genreError === "preferredGenres"}
+                />
+              </Field>
+
+              <Field label="불호 장르" required id="field-dislikedGenres" caption="1·2순위를 정해두면 안 맞는 작품을 미리 거를 수 있어요">
+                <GenreSelect
+                  options={GENRES}
+                  selected={dislikedGenres}
+                  onChange={(next) => {
+                    setDislikedGenres(next);
+                    if (next.length > 0) setGenreError((cur) => (cur === "dislikedGenres" ? null : cur));
+                  }}
+                  rankBadges={2}
+                  error={genreError === "dislikedGenres"}
+                />
+              </Field>
+
+              <Field label="사용 툴" required id="field-tools">
+                <TagSelect options={TOOLS} selected={toolNames} onChange={setToolNames} />
+              </Field>
+
+              <Field label="근무형태" required id="field-workType">
+                <SingleSelectChips options={WORK_TYPES} value={workType} onChange={setWorkType} />
+              </Field>
+
+              {/* 그룹 경계: 여기부터 경력/연락시간대/특징/성향 — 위아래 각 32px(총 64px) + 구분선 */}
+              <div className="border-t border-neutral-200 pt-8">
+                <Field
+                  label="경력 사항"
+                  id="field-careers"
+                  caption="참여한 작품을 적으면 믿고 맡기기 쉬워요"
+                  headerAction={
+                    <label className="flex items-center gap-1.5 text-body-sm text-neutral-500 cursor-pointer select-none shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={isNewcomer}
+                        onChange={(e) => setIsNewcomer(e.target.checked)}
+                        className="accent-primary-500"
+                      />
+                      신입
+                    </label>
+                  }
+                >
+                  <CareerFields careers={careers} onChange={setCareers} isNewcomer={isNewcomer} />
+                </Field>
+              </div>
+
+              <Field label="연락 가능 시간대" id="field-contactTime">
+                <SingleSelectChips options={CONTACT_TIMES} value={contactTime} onChange={setContactTime} />
+                <Input
+                  value={contactNote}
+                  onChange={(e) => setContactNote(e.target.value)}
+                  placeholder="연락되는 시간을 적어두면 엇갈리는 연락이 줄어요 (예: 평일 14~22시)"
+                  className="mt-3"
+                />
+              </Field>
+
+              <Field label="작가 특징" id="field-authorTraits" caption="구체적으로 적을수록 컨택이 빨라져요">
+                <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
+                <Input
+                  value={authorTraitsNote}
+                  onChange={(e) => setAuthorTraitsNote(e.target.value)}
+                  placeholder="여기에 없는 특징을 직접 적어주세요"
+                  className="mt-3"
+                />
+              </Field>
+
+              <Field label="작업물 성향" caption="그림체·수위가 갈리는 작품이라면 밝혀두는 게 좋아요">
+                <SingleSelectChips options={WORK_STYLES} value={workStyle} onChange={setWorkStyle} />
+              </Field>
+            </div>
+          )}
         </div>
 
         <aside className="lg:sticky lg:top-[88px] h-fit">
-          <ProgressChecklist items={checklistItems} />
+          <ProgressChecklist items={checklistItems} percent={checklistPercent} />
         </aside>
       </div>
 
-      {/* M-9 하단 고정 저장 바 */}
+      {/* 하단 고정 저장 바 */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-md border-t border-neutral-200">
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-3 flex items-center justify-between">
           <span className="text-caption text-neutral-400">{lastSavedAt ? "방금 저장됨" : "작성을 시작해 주세요"}</span>
-          <Button variant="dark-pill" disabled={!canSubmit} arrow onClick={() => setShowModal(true)}>
-            작성 완료
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleTempSave}>
+              <span className={justSaved ? "text-primary-600" : ""}>{justSaved ? "저장했어요" : "임시 저장"}</span>
+            </Button>
+            <Button variant="dark-pill" arrow onClick={handleSubmitClick}>
+              작성 완료
+            </Button>
+          </div>
         </div>
       </div>
 

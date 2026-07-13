@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { CareerEntry } from "@/types/profile";
-import { PARTS } from "@/lib/constants";
+import { PARTS, PLATFORMS } from "@/lib/constants";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import TagSelect from "@/components/TagSelect";
 import YearPicker from "@/components/ui/YearPicker";
 
@@ -11,11 +12,14 @@ function emptyCareer(): CareerEntry {
   return {
     id: `career-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     title: "",
+    platform: "",
+    platformCustom: "",
     startYear: null,
     startMonth: null,
     endYear: null,
     endMonth: null,
     parts: [],
+    memo: "",
     link: "",
   };
 }
@@ -41,21 +45,32 @@ function CareerCard({
         entered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1.5"
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Input
           value={entry.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
-          placeholder="작품명 / 활동명"
+          placeholder="참여한 작품명을 적어주세요"
           className="max-w-xs"
         />
         <button
           type="button"
           onClick={onRemove}
-          className="text-caption text-neutral-400 hover:text-danger transition-colors ml-3 shrink-0"
+          className="text-caption text-neutral-400 hover:text-danger transition-colors shrink-0"
         >
           삭제
         </button>
       </div>
+
+      <Select label="플랫폼" options={PLATFORMS} value={entry.platform} onChange={(platform) => onUpdate({ platform, platformCustom: "" })} allLabel="선택 안 함" />
+      {entry.platform === "기타" && (
+        <Input
+          value={entry.platformCustom}
+          onChange={(e) => onUpdate({ platformCustom: e.target.value })}
+          placeholder="플랫폼명을 직접 적어주세요"
+        />
+      )}
+
+      <TagSelect options={PARTS} selected={entry.parts} onChange={(parts) => onUpdate({ parts })} />
 
       <div className="flex items-center gap-2 text-body-sm text-neutral-500">
         <YearPicker
@@ -71,7 +86,11 @@ function CareerCard({
         />
       </div>
 
-      <TagSelect options={PARTS} selected={entry.parts} onChange={(parts) => onUpdate({ parts })} />
+      <Input
+        value={entry.memo}
+        onChange={(e) => onUpdate({ memo: e.target.value })}
+        placeholder="담당 범위나 특이사항을 간단히 적어주세요"
+      />
 
       <Input value={entry.link} onChange={(e) => onUpdate({ link: e.target.value })} placeholder="링크 (선택)" />
     </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { Resume } from "@/store/useProfileStore";
-import { BUMP_COOLDOWN_MS } from "@/store/useProfileStore";
+import { BUMP_COOLDOWN_MS, isProfileComplete } from "@/store/useProfileStore";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -26,9 +27,10 @@ interface ResumeCardProps {
   onDelete: () => void;
   onRequestPublish: () => void;
   onBump: () => void;
+  onPdf: () => void;
 }
 
-export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish, onBump }: ResumeCardProps) {
+export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish, onBump, onPdf }: ResumeCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [justBumped, setJustBumped] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -51,6 +53,7 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
 
   const remainingMs = resume.lastBumpedAt ? BUMP_COOLDOWN_MS - (now - resume.lastBumpedAt) : 0;
   const onCooldown = remainingMs > 0;
+  const complete = isProfileComplete(resume.profile);
 
   const handleBump = () => {
     onBump();
@@ -64,17 +67,27 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
   };
 
   return (
-    <Card className="group relative">
-      <div className="w-full aspect-[3/4] bg-neutral-100">
-        {resume.profile.images[0] && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={resume.profile.images[0]}
-            alt={`${resume.profile.nickname} 대표 그림`}
-            className="w-full h-full object-cover object-top"
-          />
-        )}
-      </div>
+    <Card hover="subtle" className="group relative">
+      {/* T-1: 카드 본문(이미지+텍스트) 클릭 -> 상세 이동. 쓰리닷·액션 버튼은 별도 형제 요소라 이동이 발동하지 않음 */}
+      <Link href={`/profile/${resume.id}`} className="block">
+        <div className="w-full aspect-[3/4] bg-neutral-100">
+          {resume.profile.images[0] && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={resume.profile.images[0]}
+              alt={`${resume.profile.nickname} 대표 그림`}
+              className="w-full h-full object-cover object-top"
+            />
+          )}
+        </div>
+        <div className="px-3 pt-3 space-y-1.5">
+          <p className="text-body-sm font-bold text-neutral-900">{resume.profile.nickname}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-caption text-neutral-400">{formatDate(resume.createdAt)}</span>
+            <Badge variant={resume.isPublished ? "primary" : "neutral"}>{resume.isPublished ? "공개 중" : "비공개"}</Badge>
+          </div>
+        </div>
+      </Link>
 
       <div ref={menuRef} className="absolute top-2 right-2">
         <button
@@ -112,6 +125,16 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
             </button>
             <button
               type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onPdf();
+              }}
+              className="w-full text-left text-body-sm text-neutral-700 px-3 py-2 hover:bg-neutral-50"
+            >
+              PDF로 저장
+            </button>
+            <button
+              type="button"
               onClick={handleDelete}
               className="w-full text-left text-body-sm text-danger px-3 py-2 hover:bg-[#FEF2F2]"
             >
@@ -121,27 +144,33 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
         )}
       </div>
 
-      <div className="p-3 space-y-1.5">
-        <p className="text-body-sm font-bold text-neutral-900">{resume.profile.nickname}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-caption text-neutral-400">{formatDate(resume.createdAt)}</span>
-          <Badge variant={resume.isPublished ? "primary" : "neutral"}>{resume.isPublished ? "공개 중" : "비공개"}</Badge>
-        </div>
-
+      <div className="px-3 pb-3 pt-2">
         {resume.isPublished ? (
           <Button
             variant="primary"
             size="sm"
-            className="w-full mt-2"
+            className="w-full"
             disabled={onCooldown && !justBumped}
             onClick={handleBump}
           >
             {justBumped ? "맨 위로 올렸어요" : onCooldown ? `끌올 가능까지 ${formatRemaining(remainingMs)}` : "끌올"}
           </Button>
         ) : (
-          <Button variant="dark-pill" size="sm" className="w-full mt-2" arrow onClick={onRequestPublish}>
-            구직란에 올리기
-          </Button>
+          <>
+            <Button
+              variant="dark-pill"
+              size="sm"
+              className="w-full"
+              arrow
+              disabled={!complete}
+              onClick={onRequestPublish}
+            >
+              구직란에 올리기
+            </Button>
+            {!complete && (
+              <p className="text-caption text-neutral-400 text-center mt-1.5">필수 항목을 채우면 올릴 수 있어요</p>
+            )}
+          </>
         )}
       </div>
     </Card>

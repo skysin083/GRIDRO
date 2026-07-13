@@ -3,12 +3,14 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "dark-pill" | "outline" | "ghost";
 
+// Z-1: 페이지 레벨 버튼(Button)은 전부 pill, 모달 내부 버튼은 ModalButton(12px 직사각)만 사용한다.
+// AI-3: 페이지 레벨 버튼은 클릭 애니메이션 없이 즉시 액션, hover만 동일하게(-2px + 그림자) 적용한다.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-primary-500 text-white hover:bg-primary-600 rounded-md",
-  "dark-pill":
-    "bg-neutral-900 text-white hover:bg-neutral-700 rounded-pill hover:-translate-y-0.5 hover:shadow-btn active:translate-y-0",
-  outline: "bg-white text-neutral-700 border border-neutral-200 hover:border-neutral-300 rounded-md",
-  ghost: "bg-transparent text-neutral-500 hover:text-neutral-900 rounded-md",
+  primary: "bg-primary-500 text-white hover:bg-primary-600 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
+  "dark-pill": "bg-neutral-900 text-white hover:bg-neutral-700 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
+  outline:
+    "bg-white text-neutral-700 border border-neutral-200 hover:border-neutral-300 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
+  ghost: "bg-transparent text-neutral-500 hover:text-neutral-900 rounded-pill",
 };
 
 const DISABLED_CLASSES = "disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:hover:bg-neutral-200 disabled:hover:translate-y-0 disabled:hover:shadow-none";

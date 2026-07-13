@@ -31,6 +31,7 @@ export default function ContactModal({ email, onClose }: { email: string; onClos
           {copied ? "복사했어요" : "복사"}
         </button>
       </div>
+      <p className="text-[13px] text-neutral-400">컨택하기를 눌렀을 때만 공개되는 이메일이에요</p>
 
       <div className="space-y-2">
         <p className="text-body-sm font-semibold text-neutral-800">컨택 시 함께 알려주세요</p>

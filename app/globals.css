@@ -91,14 +91,6 @@ body {
   }
 }
 
-.text-eyebrow {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-primary-500);
-}
-
 .card-hover {
   transition:
     transform var(--dur-base) var(--ease),
@@ -109,6 +101,21 @@ body {
   transform: translateY(-4px);
   border-color: var(--color-primary-300);
   box-shadow: var(--shadow-md);
+}
+
+.card-hover-subtle {
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.card-hover-subtle:hover {
+  border-color: var(--color-neutral-400);
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 .reveal {
