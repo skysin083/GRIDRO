@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { UploadCloud, Lightbulb } from "lucide-react";
 import { fileToImageUrl } from "@/lib/resizeImage";
+import { useToast } from "@/components/ui/Toast";
 
 const MAX_IMAGES = 10;
 
@@ -22,8 +23,8 @@ interface UploadSlotProps {
 export default function UploadSlot({ images, onChange, tips = [], label, required }: UploadSlotProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [overflowMsg, setOverflowMsg] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const toast = useToast();
 
   const isFull = images.length >= MAX_IMAGES;
 
@@ -31,13 +32,14 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
     const files = Array.from(fileList);
     const room = MAX_IMAGES - images.length;
     const accepted = files.slice(0, room);
+    // 리사이즈에 시간이 걸려 완료 시점이 눈에 안 띄므로 결과를 토스트로 알린다.
     if (files.length > accepted.length) {
-      setOverflowMsg(true);
-      setTimeout(() => setOverflowMsg(false), 3000);
+      toast.show(`최대 ${MAX_IMAGES}장까지 올릴 수 있어 나머지는 제외했어요`, "danger");
     }
     if (accepted.length === 0) return;
     const urls = await Promise.all(accepted.map(fileToImageUrl));
     onChange([...images, ...urls]);
+    toast.show(`그림 ${urls.length}장을 올렸어요`);
   };
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,10 +140,6 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
           <p className="text-[13px] text-neutral-400">JPG·PNG, 한 번에 여러 장 가능</p>
           <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleInputChange} />
         </div>
-      )}
-
-      {overflowMsg && (
-        <p className="text-caption text-danger">최대 {MAX_IMAGES}장까지 업로드할 수 있어 나머지는 제외됐어요.</p>
       )}
 
       {images.length > 0 && (

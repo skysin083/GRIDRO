@@ -22,7 +22,8 @@ interface ProfileStore {
 }
 
 export const MAX_RESUMES = 3;
-export const BUMP_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+// UT: "24시간 너무 잦지 않아? 한 48시간으로 해… 48시간 이상도 괜찮을 것 같아"(재갈)
+export const BUMP_COOLDOWN_MS = 48 * 60 * 60 * 1000;
 
 // AK-2: 공개로 이어지는 모든 진입점(이력서 탭 카드/내 이력서 상세 등)이 이 한 곳만 참조한다.
 // 필수 항목 기준은 AG-2 / app/write/page.tsx의 FIELD_ORDER required 목록과 동일하게 유지할 것.

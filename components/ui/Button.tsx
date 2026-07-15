@@ -3,7 +3,8 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "dark-pill" | "outline" | "ghost";
 
-// Z-1: 페이지 레벨 버튼(Button)은 전부 pill, 모달 내부 버튼은 ModalButton(12px 직사각)만 사용한다.
+// Z-1(개정): 버튼 radius는 앱 전체가 pill 하나로 통일한다 — 페이지 버튼(Button)과 모달 버튼(ModalButton) 모두.
+// 태그·칩·배지가 이미 전부 pill이라 모달만 직사각이면 그쪽이 오히려 이질적이었다.
 // AN-1: (AI-3의 hover lift 규칙을 대체) 온보딩(랜딩) 페이지를 제외한 모든 화면에서 버튼 hover는
 // 배경색·보더 색 변화만 허용 — translateY(들썩임)·box-shadow 변화 금지. 랜딩 전용 lift는
 // app/page.tsx의 해당 Button 호출부에서 className으로 개별 추가한다.

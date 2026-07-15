@@ -1,36 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useProfileStore, MAX_RESUMES, isProfileComplete } from "@/store/useProfileStore";
+import { useProfileStore, MAX_RESUMES } from "@/store/useProfileStore";
+import { usePublishRequest } from "@/lib/usePublishRequest";
+import { useToast } from "@/components/ui/Toast";
 import ResumeCard from "@/components/ResumeCard";
 import PageHeader from "@/components/ui/PageHeader";
-import Modal from "@/components/ui/Modal";
-import ModalButton from "@/components/ui/ModalButton";
 
 export default function MyPage() {
   const router = useRouter();
   const resumes = useProfileStore((s) => s.resumes);
-  const { deleteResume, publishResume, unpublishResume, bumpResume } = useProfileStore((s) => s.actions);
-
-  const [confirmTarget, setConfirmTarget] = useState<{ id: string; replacingTitle: string } | null>(null);
-
-  const requestPublish = (id: string) => {
-    const resume = resumes.find((r) => r.id === id);
-    if (!resume) return;
-    if (resume.isPublished) {
-      unpublishResume(id);
-      return;
-    }
-    if (!isProfileComplete(resume.profile)) return;
-    const currentlyPublished = resumes.find((r) => r.isPublished && r.id !== id);
-    if (currentlyPublished) {
-      setConfirmTarget({ id, replacingTitle: currentlyPublished.profile.nickname });
-    } else {
-      publishResume(id);
-    }
-  };
+  const { deleteResume, bumpResume } = useProfileStore((s) => s.actions);
+  // AK-2: 공개 규칙·확인 모달·토스트는 훅 하나에서 온다 (이력서 상세와 동일한 동작).
+  const { requestPublish, confirmModal } = usePublishRequest();
+  const toast = useToast();
 
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 space-y-10">
@@ -64,36 +48,21 @@ export default function MyPage() {
             key={resume.id}
             resume={resume}
             onEdit={() => router.push(`/write?id=${resume.id}`)}
-            onDelete={() => deleteResume(resume.id)}
+            onDelete={() => {
+              deleteResume(resume.id);
+              toast.show("이력서를 삭제했어요");
+            }}
             onRequestPublish={() => requestPublish(resume.id)}
-            onBump={() => bumpResume(resume.id)}
+            onBump={() => {
+              bumpResume(resume.id);
+              toast.show("구직란 맨 위로 올렸어요");
+            }}
             onPdf={() => router.push(`/profile/${resume.id}?print=1`)}
           />
         ))}
       </div>
 
-      {confirmTarget && (
-        <Modal onClose={() => setConfirmTarget(null)}>
-          <h2 className="text-title font-semibold text-neutral-900">
-            &lsquo;{confirmTarget.replacingTitle}&rsquo;이 비공개로 바뀌어요.
-          </h2>
-          <p className="text-body-sm text-neutral-500">구직란에는 한 번에 하나만 올릴 수 있어요.</p>
-          <div className="flex flex-col gap-2 pt-2">
-            <ModalButton
-              variant="primary"
-              onClick={() => {
-                publishResume(confirmTarget.id);
-                setConfirmTarget(null);
-              }}
-            >
-              그래도 올리기
-            </ModalButton>
-            <ModalButton variant="secondary" onClick={() => setConfirmTarget(null)}>
-              취소
-            </ModalButton>
-          </div>
-        </Modal>
-      )}
+      {confirmModal}
     </div>
   );
 }

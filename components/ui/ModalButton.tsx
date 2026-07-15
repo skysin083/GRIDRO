@@ -16,7 +16,7 @@ export default function ModalButton({ variant = "primary", children, ...rest }: 
   return (
     <button
       type="button"
-      className={`w-full h-[52px] rounded-[12px] font-medium text-body-sm transition-colors duration-[.18s] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:border-neutral-200 ${VARIANT_CLASSES[variant]}`}
+      className={`w-full h-[52px] rounded-pill font-medium text-body-sm transition-colors duration-[.18s] disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:border-neutral-200 ${VARIANT_CLASSES[variant]}`}
       {...rest}
     >
       {children}

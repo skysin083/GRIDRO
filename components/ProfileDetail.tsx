@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useProfileById } from "@/lib/getProfileById";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
+import { usePublishRequest } from "@/lib/usePublishRequest";
 import { CareerEntry } from "@/types/profile";
 import Tag from "@/components/ui/Tag";
 import Button from "@/components/ui/Button";
@@ -53,23 +54,35 @@ function CareerInfoRow({ careers }: { careers: CareerEntry[] }) {
   );
 }
 
-// AN-4: 컨택하기(방문자) / 수정하기+PDF로 저장(본인 이력서) 액션 블록 — 데스크톱 sticky와
+// AN-4: 컨택하기(방문자) / 공개 전환+수정하기+PDF로 저장(본인 이력서) 액션 블록 — 데스크톱 sticky와
 // 모바일 하단 고정 바 양쪽에서 동일하게 재사용해 두 위치의 동작이 어긋나지 않게 한다.
 function ActionButtons({
   isOwnResume,
+  isPublished,
   id,
   onContact,
+  onTogglePublish,
   stackClassName = "",
 }: {
   isOwnResume: boolean;
+  isPublished: boolean;
   id: string;
   onContact: () => void;
+  onTogglePublish: () => void;
   stackClassName?: string;
 }) {
   if (isOwnResume) {
     return (
       <div className={`flex flex-col gap-2 ${stackClassName}`}>
-        <Button variant="dark-pill" className="w-full" href={`/write?id=${id}`}>
+        {/* 상세까지 와서 다시 '내 이력서'로 돌아가야 공개 전환이 가능했다. 여기서 바로 끝내게 한다. */}
+        <Button
+          variant={isPublished ? "outline" : "dark-pill"}
+          className="w-full"
+          onClick={onTogglePublish}
+        >
+          {isPublished ? "비공개로 전환" : "구직란에 올리기"}
+        </Button>
+        <Button variant="outline" className="w-full" href={`/write?id=${id}`}>
           수정하기
         </Button>
         <Button variant="outline" className="w-full" href={`/profile/${id}?print=1`}>
@@ -88,6 +101,8 @@ function ActionButtons({
 function ProfileDetailInner({ id }: { id: string }) {
   const profile = useProfileById(id);
   const resumes = useProfileStore((s) => s.resumes);
+  // AK-2: 공개 규칙은 '내 이력서'와 같은 훅에서 온다 — 두 진입점의 동작이 갈라지지 않게.
+  const { requestPublish, confirmModal } = usePublishRequest();
   const searchParams = useSearchParams();
   const [activeIndex, setActiveIndex] = useState(0);
   const [thumbPage, setThumbPage] = useState(0);
@@ -109,7 +124,8 @@ function ProfileDetailInner({ id }: { id: string }) {
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
-  const isOwnResume = resumes.some((r) => r.id === id);
+  const ownResume = resumes.find((r) => r.id === id);
+  const isOwnResume = ownResume !== undefined;
 
   useEffect(() => {
     if (searchParams.get("print") === "1") {
@@ -204,7 +220,13 @@ function ProfileDetailInner({ id }: { id: string }) {
           {/* AN-4: 컬럼 전체가 아니라 이 액션 버튼 블록만 sticky — 정보량이 뷰포트보다 길어져도
               아래 정보 항목이 sticky 블록에 가려 못 보이는 문제(스크롤 충돌)를 피한다. */}
           <div className="hidden md:block md:sticky md:top-[88px] print:hidden">
-            <ActionButtons isOwnResume={isOwnResume} id={id} onContact={() => setShowContact(true)} />
+            <ActionButtons
+          isOwnResume={isOwnResume}
+          isPublished={ownResume?.isPublished ?? false}
+          id={id}
+          onContact={() => setShowContact(true)}
+          onTogglePublish={() => requestPublish(id)}
+        />
           </div>
 
           <div className="border-t border-neutral-200 pt-5 space-y-5">
@@ -223,8 +245,21 @@ function ProfileDetailInner({ id }: { id: string }) {
               label="작가 특징"
               value={[...profile.authorTraits, profile.authorTraitsNote].filter(Boolean).join(", ") || "-"}
             />
-            <InfoRow label="근무형태" value={profile.workTypes.length > 0 ? profile.workTypes.join(" · ") : "-"} />
-            <InfoRow label="연락 가능 시간대" value={profile.contactNote || profile.contactTime || "-"} />
+            <InfoRow
+              label="근무형태"
+              value={
+                profile.workTypes.length > 0
+                  ? // '기타'는 직접 적은 설명으로 바꿔 보여준다 — '기타'라는 말만 남으면 정보가 없다.
+                    profile.workTypes
+                      .map((w) => (w === "기타" ? profile.workTypeNote.trim() || "기타" : w))
+                      .join(" · ")
+                  : "-"
+              }
+            />
+            <InfoRow
+              label="연락 가능 시간대"
+              value={profile.contactNote || (profile.contactTimes.length > 0 ? profile.contactTimes.join(" · ") : "-")}
+            />
           </div>
         </div>
 
@@ -331,6 +366,7 @@ function ProfileDetailInner({ id }: { id: string }) {
       </div>
 
       {showContact && <ContactModal email={profile.email} onClose={() => setShowContact(false)} />}
+      {confirmModal}
 
       {/* AO-1: 하단 고정 탭바(AM-1)가 사라져 이 버튼 바가 모바일의 유일한 화면 하단 고정
           요소가 됐다 — 세이프에어리어 패딩도 이제 여기서 처리한다. */}
@@ -338,7 +374,13 @@ function ProfileDetailInner({ id }: { id: string }) {
         className="md:hidden print:hidden fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-5 pt-3"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
-        <ActionButtons isOwnResume={isOwnResume} id={id} onContact={() => setShowContact(true)} />
+        <ActionButtons
+          isOwnResume={isOwnResume}
+          isPublished={ownResume?.isPublished ?? false}
+          id={id}
+          onContact={() => setShowContact(true)}
+          onTogglePublish={() => requestPublish(id)}
+        />
       </div>
     </div>
   );

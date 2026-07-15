@@ -28,7 +28,9 @@ export interface Profile {
   authorTraitsNote: string;
   /** UT: 고정 어시와 프리랜서를 병행하는 경우가 흔해 단일 선택이 불가능했다(묵찬·이려원·재갈). */
   workTypes: string[];
-  contactTime: string;
+  /** workTypes에 "기타"를 골랐을 때 직접 적는 설명. */
+  workTypeNote: string;
+  contactTimes: string[];
   contactNote: string;
   intro: string;
   bio: string;

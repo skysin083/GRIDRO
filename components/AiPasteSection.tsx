@@ -31,7 +31,7 @@ export default function AiPasteSection({ onComplete }: { onComplete?: () => void
         placeholder="방사 카페 등에 써둔 구직글을 붙여넣어 주세요"
         rows={4}
         maxLength={2000}
-        className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-3 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-100 resize-none"
+        className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-3 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 resize-none"
       />
       <div className="flex items-center justify-between">
         <Button variant="primary" disabled={text.trim().length < 10 || processing} onClick={handleClick}>

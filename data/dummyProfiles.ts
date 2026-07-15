@@ -10,7 +10,10 @@ const now = Date.now();
 // 정렬(publishedAt 최신순)이 눈으로 확인되도록 더미마다 시간차를 흩뿌린다.
 const ago = (ms: number) => now - ms;
 
-type RawDummyProfile = Omit<Profile, "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote">;
+type RawDummyProfile = Omit<
+  Profile,
+  "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote" | "workTypeNote"
+>;
 
 const rawDummyProfiles: RawDummyProfile[] = [
   {
@@ -25,7 +28,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "여성향",
     authorTraits: ["작업 속도 빠름", "소통 원활"],
     workTypes: ["프리랜서"],
-    contactTime: "평일 오후",
+    contactTimes: ["평일 오후"],
     intro: "잔잔한 감성 로맨스 채색을 가장 잘합니다.",
     publishedAt: ago(2 * MIN),
   },
@@ -42,7 +45,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     authorTraits: ["피드백 수용 잘함", "꼼꼼함"],
     // UT에서 나온 실제 사정(고정 어시·프리랜서 병행)이 화면에 드러나도록 복수 값을 가진 더미를 하나 둔다.
     workTypes: ["고정 어시", "프리랜서"],
-    contactTime: "평일 저녁",
+    contactTimes: ["평일 저녁"],
     intro: "역동적인 액션 콘티·선화 전문입니다.",
     publishedAt: ago(3 * HOUR),
   },
@@ -58,7 +61,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "무관",
     authorTraits: ["연락 잘됨", "수정 대응 빠름"],
     workTypes: ["외주(단건)"],
-    contactTime: "시간 무관",
+    contactTimes: ["시간 무관"],
     intro: "몰입감 있는 배경 작화로 완성도를 높여드립니다.",
     publishedAt: ago(26 * HOUR),
   },
@@ -74,7 +77,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "남성향",
     authorTraits: ["작업 속도 빠름"],
     workTypes: ["프리랜서"],
-    contactTime: "주말",
+    contactTimes: ["주말"],
     intro: "깔끔한 밑색·채색으로 마감을 지킵니다.",
     publishedAt: ago(3 * DAY),
   },
@@ -90,7 +93,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "무관",
     authorTraits: ["꼼꼼함", "소통 원활"],
     workTypes: ["외주(단건)"],
-    contactTime: "평일 오전",
+    contactTimes: ["평일 오전"],
     intro: "어두운 톤의 명암 표현이 강점입니다.",
     publishedAt: ago(5 * DAY),
   },
@@ -106,7 +109,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "여성향",
     authorTraits: ["피드백 수용 잘함", "연락 잘됨"],
     workTypes: ["프리랜서"],
-    contactTime: "평일 오후",
+    contactTimes: ["평일 오후"],
     intro: "콘티부터 후보정까지 전공정 소화 가능합니다.",
     publishedAt: ago(9 * DAY),
   },
@@ -122,7 +125,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "남성향",
     authorTraits: ["작업 속도 빠름", "수정 대응 빠름"],
     workTypes: ["고정 어시"],
-    contactTime: "평일 저녁",
+    contactTimes: ["평일 저녁"],
     intro: "박진감 넘치는 선화와 명암을 담당합니다.",
     publishedAt: ago(16 * DAY),
   },
@@ -138,7 +141,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "무관",
     authorTraits: ["소통 원활", "연락 잘됨"],
     workTypes: ["외주(단건)"],
-    contactTime: "주말",
+    contactTimes: ["주말"],
     intro: "밝고 경쾌한 학원물 채색을 좋아합니다.",
     publishedAt: ago(4 * HOUR),
   },
@@ -154,7 +157,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     workStyle: "여성향",
     authorTraits: ["꼼꼼함", "피드백 수용 잘함"],
     workTypes: ["프리랜서"],
-    contactTime: "시간 무관",
+    contactTimes: ["시간 무관"],
     intro: "안정적인 구도의 콘티와 배경을 그립니다.",
     publishedAt: ago(6 * DAY),
   },
@@ -167,4 +170,5 @@ export const dummyProfiles: Profile[] = rawDummyProfiles.map((p) => ({
   careers: [],
   authorTraitsNote: "",
   contactNote: "",
+  workTypeNote: "",
 }));

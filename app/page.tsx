@@ -245,7 +245,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-body-sm font-medium text-white bg-primary-500 px-3 py-1.5 rounded-pill">끌올</span>
                   </div>
-                  <p className="text-caption text-neutral-400 mt-1">24시간마다 한 번, 피드 맨 위로 올라가요</p>
+                  <p className="text-caption text-neutral-400 mt-1">48시간마다 한 번, 피드 맨 위로 올라가요</p>
                 </div>
               </div>
             </div>

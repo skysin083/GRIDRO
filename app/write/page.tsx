@@ -24,6 +24,7 @@ import ProgressChecklist, { ChecklistItem } from "@/components/ui/ProgressCheckl
 import CareerFields from "@/components/CareerFields";
 import AiPasteSection from "@/components/AiPasteSection";
 import PublishModal from "@/components/PublishModal";
+import { useToast } from "@/components/ui/Toast";
 
 function SingleSelectChips<T extends string>({
   options,
@@ -112,6 +113,7 @@ const AUTOSAVE_DELAY_MS = 800;
 function WritePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
   const editId = searchParams.get("id");
 
   const resumes = useProfileStore((s) => s.resumes);
@@ -135,14 +137,14 @@ function WritePageInner() {
   const [authorTraits, setAuthorTraits] = useState<string[]>(initialProfile?.authorTraits ?? []);
   const [authorTraitsNote, setAuthorTraitsNote] = useState(initialProfile?.authorTraitsNote ?? "");
   const [workTypes, setWorkTypes] = useState<string[]>(initialProfile?.workTypes ?? []);
-  const [contactTime, setContactTime] = useState(initialProfile?.contactTime ?? "");
+  const [workTypeNote, setWorkTypeNote] = useState(initialProfile?.workTypeNote ?? "");
+  const [contactTimes, setContactTimes] = useState<string[]>(initialProfile?.contactTimes ?? []);
   const [contactNote, setContactNote] = useState(initialProfile?.contactNote ?? "");
   const [isNewcomer, setIsNewcomer] = useState(initialProfile?.isNewcomer ?? false);
   const [careers, setCareers] = useState<CareerEntry[]>(initialProfile?.careers ?? []);
   const [showModal, setShowModal] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [genreError, setGenreError] = useState<"preferredGenres" | null>(null);
-  const [justSaved, setJustSaved] = useState(false);
 
   const canCreateNew = editId !== null || resumes.length < MAX_RESUMES;
 
@@ -160,7 +162,8 @@ function WritePageInner() {
       authorTraits,
       authorTraitsNote,
       workTypes,
-      contactTime,
+      workTypeNote,
+      contactTimes,
       contactNote,
       intro,
       bio,
@@ -182,7 +185,8 @@ function WritePageInner() {
       authorTraits,
       authorTraitsNote,
       workTypes,
-      contactTime,
+      workTypeNote,
+      contactTimes,
       contactNote,
       intro,
       bio,
@@ -218,7 +222,7 @@ function WritePageInner() {
     dislikedGenres: dislikedGenres.length > 0,
     tools: toolNames.length > 0,
     workType: workTypes.length > 0,
-    contactTime: contactTime !== "" || contactNote.trim() !== "",
+    contactTime: contactTimes.length > 0 || contactNote.trim() !== "",
     careers: careers.length > 0 || isNewcomer,
     authorTraits: authorTraits.length > 0 || authorTraitsNote.trim() !== "",
   };
@@ -239,6 +243,8 @@ function WritePageInner() {
       if (firstMissing.key === "preferredGenres") {
         setGenreError(firstMissing.key);
       }
+      // 스크롤만 하면 왜 멈췄는지 알기 어려워, 남은 항목 이름을 그대로 알려준다.
+      toast.show(`'${firstMissing.label}'을(를) 채워야 완료할 수 있어요`, "danger");
       return;
     }
     setGenreError(null);
@@ -250,18 +256,19 @@ function WritePageInner() {
     const savedId = saveResume(resumeId, draftProfile);
     if (!resumeId) setResumeId(savedId);
     setLastSavedAt(Date.now());
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
+    toast.show("임시 저장했어요");
   };
 
   const handlePublish = () => {
     const savedId = saveResume(resumeId, draftProfile);
     publishResume(savedId);
+    toast.show("구직란에 올렸어요");
     router.push("/feed");
   };
 
   const handleSaveOnly = () => {
     saveResume(resumeId, draftProfile);
+    toast.show("'내 이력서'에 비공개로 저장했어요");
     router.push("/my");
   };
 
@@ -352,22 +359,19 @@ function WritePageInner() {
                 </div>
               </Field>
 
-              {/* UT: "한줄소개랑 소개랑 큰 차이가 있는 건가"(멍군) — 두 필드의 역할 차이를 캡션에서 못박는다.
-                  작업 속도는 케이스마다 달라 표준 필드로 못 박는다는 반증이 있었으므로(묵해),
-                  구조화 대신 여기에 자유 기재하도록 예시로 유도한다. */}
-              <Field
-                label="소개"
-                id="field-bio"
-                caption="제목보다 자세한 설명이에요. 카드에는 안 보이고 상세 화면에서 보여요"
-              >
+              {/* 작업 속도는 케이스마다 달라 표준 필드로 못 박는다는 반증이 있었으므로(묵해),
+                  구조화 대신 여기에 자유 기재하도록 예시로 유도한다.
+                  예시는 '작가 특징' 태그로 찍을 수 있는 것(수정 대응·연락·꼼꼼함)과 겹치지 않게,
+                  태그로 표현 못 하는 정량 수치와 협업 방식만 담는다. */}
+              <Field label="소개" id="field-bio">
                 <div className="relative">
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value.slice(0, 500))}
-                    placeholder="예) 컷당 3~4시간 정도 걸리고, 수정 요청은 당일 반영합니다"
+                    placeholder="예) 컷당 3~4시간 정도 걸려요. 러프를 먼저 보여드리고 진행하는 편이에요"
                     maxLength={500}
                     rows={4}
-                    className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-50 resize-none"
+                    className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 resize-none"
                   />
                   <span
                     className={`absolute right-3 bottom-2 text-caption font-semibold ${
@@ -422,13 +426,17 @@ function WritePageInner() {
 
               {/* UT: 단일 선택이라 "고정 어시/프리랜서 와리가리"하는 실제 사정을 담을 수 없었다(묵찬).
                   "다 구하는 사람이 있을 수 있잖아요"(이려원) — 복수 선택으로 연다. */}
-              <Field
-                label="근무형태"
-                required
-                id="field-workType"
-                caption="병행한다면 여러 개 골라도 돼요"
-              >
+              <Field label="근무형태" required id="field-workType">
                 <TagSelect options={WORK_TYPES} selected={workTypes} onChange={setWorkTypes} />
+                {/* '기타'는 고르고 끝나면 구인자에게 아무 정보가 안 된다. 고른 사람만 직접 적게 한다. */}
+                {workTypes.includes("기타") && (
+                  <Input
+                    value={workTypeNote}
+                    onChange={(e) => setWorkTypeNote(e.target.value)}
+                    placeholder="어떤 형태인지 적어주세요 (예: 단편만, 성수기에만 참여)"
+                    className="mt-3"
+                  />
+                )}
               </Field>
 
               {/* 그룹 경계: 여기부터 경력/연락시간대/특징/성향 — 위아래 각 32px(총 64px) + 구분선 */}
@@ -453,8 +461,9 @@ function WritePageInner() {
                 </Field>
               </div>
 
+              {/* 시간대는 여러 구간이 열려 있는 게 보통이라 복수 선택으로 둔다. */}
               <Field label="연락 가능 시간대" id="field-contactTime">
-                <SingleSelectChips options={CONTACT_TIMES} value={contactTime} onChange={setContactTime} />
+                <TagSelect options={CONTACT_TIMES} selected={contactTimes} onChange={setContactTimes} />
                 <Input
                   value={contactNote}
                   onChange={(e) => setContactNote(e.target.value)}
@@ -491,7 +500,7 @@ function WritePageInner() {
           <span className="text-caption text-neutral-400">{lastSavedAt ? "방금 저장됨" : "작성을 시작해 주세요"}</span>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={handleTempSave}>
-              <span className={justSaved ? "text-primary-600" : ""}>{justSaved ? "저장했어요" : "임시 저장"}</span>
+              임시 저장
             </Button>
             <Button variant="dark-pill" arrow onClick={handleSubmitClick}>
               작성 완료

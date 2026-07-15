@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Settings2, ChevronRight, X } from "lucide-react";
+import { useState } from "react";
+import { Settings2, X } from "lucide-react";
 import { PARTS, GENRES, WORK_TYPES } from "@/lib/constants";
 import { Profile } from "@/types/profile";
 import MultiSelect from "@/components/ui/MultiSelect";
@@ -149,8 +149,10 @@ interface FilterBarWithCountProps extends FilterBarProps {
 
 export default function FilterBar({ filters, onChange, resultCount }: FilterBarWithCountProps) {
   const [allFiltersOpen, setAllFiltersOpen] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
+  // UT: 바에 깔려 있던 퀵칩 스트립은 2명이 불편/불필요하다고 지적했다
+  // ("살짝 되게 힘들어… 차라리 쭉 고르는 게 편하다" — 멍군 / "불필요하게 느껴진다" — 이려원).
+  // 칩 스트립과 가로 스크롤 버튼을 걷어내고, 같은 필터는 전체 필터 모달에서 섹션으로 고르게 남긴다.
   return (
     <div className="flex items-center gap-2 min-w-0">
       <button
@@ -164,21 +166,7 @@ export default function FilterBar({ filters, onChange, resultCount }: FilterBarW
 
       <div className="hidden md:flex items-center gap-2 shrink-0">
         <DropdownGroup filters={filters} onChange={onChange} />
-        <span className="w-px h-5 bg-neutral-200 mx-1" />
       </div>
-
-      <div ref={scrollRef} className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        <QuickChips filters={filters} onChange={onChange} />
-      </div>
-
-      <button
-        type="button"
-        onClick={() => scrollRef.current?.scrollBy({ left: 160, behavior: "smooth" })}
-        aria-label="필터 더 보기"
-        className="shrink-0 w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-700"
-      >
-        <ChevronRight size={16} />
-      </button>
 
       {allFiltersOpen && (
         <Modal onClose={() => setAllFiltersOpen(false)} maxWidthClassName="max-w-[560px]" panel>
