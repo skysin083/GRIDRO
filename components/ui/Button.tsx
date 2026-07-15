@@ -4,16 +4,17 @@ import { ButtonHTMLAttributes, ReactNode } from "react";
 type Variant = "primary" | "dark-pill" | "outline" | "ghost";
 
 // Z-1: 페이지 레벨 버튼(Button)은 전부 pill, 모달 내부 버튼은 ModalButton(12px 직사각)만 사용한다.
-// AI-3: 페이지 레벨 버튼은 클릭 애니메이션 없이 즉시 액션, hover만 동일하게(-2px + 그림자) 적용한다.
+// AN-1: (AI-3의 hover lift 규칙을 대체) 온보딩(랜딩) 페이지를 제외한 모든 화면에서 버튼 hover는
+// 배경색·보더 색 변화만 허용 — translateY(들썩임)·box-shadow 변화 금지. 랜딩 전용 lift는
+// app/page.tsx의 해당 Button 호출부에서 className으로 개별 추가한다.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-primary-500 text-white hover:bg-primary-600 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
-  "dark-pill": "bg-neutral-900 text-white hover:bg-neutral-700 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
-  outline:
-    "bg-white text-neutral-700 border border-neutral-200 hover:border-neutral-300 rounded-pill hover:-translate-y-0.5 hover:shadow-btn",
+  primary: "bg-primary-500 text-white hover:bg-primary-600 rounded-pill",
+  "dark-pill": "bg-neutral-900 text-white hover:bg-neutral-700 rounded-pill",
+  outline: "bg-white text-neutral-700 border border-neutral-200 hover:border-neutral-300 rounded-pill",
   ghost: "bg-transparent text-neutral-500 hover:text-neutral-900 rounded-pill",
 };
 
-const DISABLED_CLASSES = "disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:hover:bg-neutral-200 disabled:hover:translate-y-0 disabled:hover:shadow-none";
+const DISABLED_CLASSES = "disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:hover:bg-neutral-200";
 
 interface CommonProps {
   variant?: Variant;

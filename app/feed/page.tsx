@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
 import ProfileCard from "@/components/ProfileCard";
-import FilterBar, { EMPTY_FEED_FILTERS, FeedFilters } from "@/components/FilterBar";
+import FilterBar, { EMPTY_FEED_FILTERS, FeedFilters, matchesAllActiveFilters } from "@/components/FilterBar";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -24,16 +24,9 @@ export default function FeedPage() {
     [published, dummyProfiles]
   );
 
-  const filtered = feed.filter((p) => {
-    if (filters.part && !p.parts.includes(filters.part)) return false;
-    if (filters.genre && !p.preferredGenres.includes(filters.genre)) return false;
-    if (filters.workType && p.workType !== filters.workType) return false;
-    if (filters.csp && !p.tools.includes("Clip Studio Paint")) return false;
-    if (filters.career && p.careers.length === 0) return false;
-    return true;
-  });
+  const filtered = feed.filter((p) => matchesAllActiveFilters(p, filters));
 
-  const hasActiveFilter = Object.values(filters).some((v) => v !== "" && v !== false);
+  const hasActiveFilter = Object.values(filters).some((v) => (Array.isArray(v) ? v.length > 0 : v !== false));
 
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 space-y-8">
@@ -57,7 +50,7 @@ export default function FeedPage() {
                 onClick={() => setFilters(EMPTY_FEED_FILTERS)}
                 className="text-body-sm text-neutral-500 underline underline-offset-4 hover:text-neutral-900"
               >
-                초기화
+                필터 초기화
               </button>
             )}
           </div>

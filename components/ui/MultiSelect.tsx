@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 
-interface SelectProps {
+interface MultiSelectProps {
   label: string;
   options: readonly string[];
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
   allLabel?: string;
 }
 
-export default function Select({ label, options, value, onChange, allLabel = "전체" }: SelectProps) {
+export default function MultiSelect({ label, options, value, onChange, allLabel = "전체" }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
@@ -31,8 +31,8 @@ export default function Select({ label, options, value, onChange, allLabel = "�
       }
     };
     const handleScroll = () => setOpen(false);
-    // AH-8: transform을 쓰는 조상(예: 경력 카드 진입 애니메이션)이 새 containing block을 만들어
-    // 드롭다운이 뒤 섹션에 깔리는 문제 — body로 포탈해 스택 컨텍스트를 완전히 벗어난다.
+    // Select.tsx의 AH-8/AL-1 수정과 동일: 포탈 패널 내부 mousedown이 document까지 버블링되면
+    // 옵션 클릭 시 click 이벤트가 도달하기 전에 패널이 먼저 닫혀 선택이 씹힌다.
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", updatePosition);
@@ -43,7 +43,11 @@ export default function Select({ label, options, value, onChange, allLabel = "�
     };
   }, [open]);
 
-  const displayLabel = value || `${label} ${allLabel}`;
+  const toggle = (option: string) => {
+    onChange(value.includes(option) ? value.filter((v) => v !== option) : [...value, option]);
+  };
+
+  const displayLabel = value.length > 0 ? `${label} ${value.length}` : `${label} ${allLabel}`;
 
   return (
     <div ref={rootRef} className="relative">
@@ -51,7 +55,7 @@ export default function Select({ label, options, value, onChange, allLabel = "�
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={`inline-flex items-center gap-1.5 text-body-sm px-3 py-1.5 rounded-pill border transition-colors ${
-          value
+          value.length > 0
             ? "bg-primary-50 border-primary-200 text-primary-700"
             : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300"
         }`}
@@ -65,35 +69,39 @@ export default function Select({ label, options, value, onChange, allLabel = "�
           <div
             style={{ position: "fixed", top: pos.top, left: pos.left }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="z-50 w-44 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 space-y-0.5"
+            className="z-50 w-48 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 space-y-0.5"
           >
             <button
               type="button"
-              onClick={() => {
-                onChange("");
-                setOpen(false);
-              }}
+              onClick={() => onChange([])}
               className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
-                !value ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
+                value.length === 0 ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
               }`}
             >
               {allLabel}
             </button>
-            {options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => {
-                  onChange(option);
-                  setOpen(false);
-                }}
-                className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
-                  value === option ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+            {options.map((option) => {
+              const checked = value.includes(option);
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => toggle(option)}
+                  className={`w-full flex items-center gap-2 text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
+                    checked ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
+                  }`}
+                >
+                  <span
+                    className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-colors ${
+                      checked ? "bg-neutral-900 border-neutral-900" : "border-neutral-300"
+                    }`}
+                  >
+                    {checked && <Check size={12} className="text-white" />}
+                  </span>
+                  {option}
+                </button>
+              );
+            })}
           </div>,
           document.body
         )}

@@ -94,7 +94,7 @@ export default function LandingPage() {
             </p>
 
             <div className="flex items-center gap-5 flex-wrap">
-              <Button href="/write" variant="dark-pill" arrow>
+              <Button href="/write" variant="dark-pill" arrow className="hover:-translate-y-0.5 hover:shadow-btn">
                 구직 하러가기
               </Button>
               <Link href="/feed" className="text-body-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-900">
@@ -292,7 +292,7 @@ export default function LandingPage() {
               lead="지금 쓰고, 올리는 건 나중에 정해도 괜찮아요."
             />
             <div className="flex flex-col items-center gap-3 mt-8">
-              <Button href="/write" variant="dark-pill" size="lg" arrow>
+              <Button href="/write" variant="dark-pill" size="lg" arrow className="hover:-translate-y-0.5 hover:shadow-btn">
                 구직 하러가기
               </Button>
               <p className="text-caption text-neutral-400">회원가입 없이 먼저 둘러볼 수 있어요</p>
