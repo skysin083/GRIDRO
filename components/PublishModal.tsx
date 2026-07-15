@@ -46,13 +46,19 @@ export default function PublishModal({ profile, onPublish, onSaveOnly, onEditMor
         </div>
       </div>
 
+      {/* UT: 구직자 5명 중 4명이 스스로 비공개 저장을 골랐지만, 이 버튼이 어디에 무엇으로 저장되는지는
+          아무도 읽어내지 못했다("임시 저장 같은 느낌만 돼서 여러 이력서를 만들 수 있는지 몰랐다" — 묵해).
+          저장 위치와 공개 여부를 버튼과 보조문구에서 못박는다. */}
       <div className="flex flex-col gap-2">
         <ModalButton variant="primary" onClick={onPublish}>
           구직란에 올리기
         </ModalButton>
         <ModalButton variant="secondary" onClick={onSaveOnly}>
-          저장하고 둘러보기
+          비공개로 저장하기
         </ModalButton>
+        <p className="text-caption text-neutral-400 text-center">
+          &lsquo;내 이력서&rsquo;에 저장돼요. 언제든 공개로 바꿀 수 있어요
+        </p>
         <button type="button" onClick={onEditMore} className="text-caption text-neutral-400 underline mt-1">
           다시 수정하기
         </button>

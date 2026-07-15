@@ -34,9 +34,9 @@ export function isProfileComplete(profile: Profile): boolean {
     profile.parts.length > 0 &&
     profile.images.length > 0 &&
     profile.preferredGenres.length > 0 &&
-    profile.dislikedGenres.length > 0 &&
+    // 불호 장르는 UT 결과 필수에서 제외했다(묵해: "가릴 처지가 아닐 것 같아요") — FIELD_ORDER와 동일하게 유지.
     profile.tools.length > 0 &&
-    profile.workType !== ""
+    profile.workTypes.length > 0
   );
 }
 

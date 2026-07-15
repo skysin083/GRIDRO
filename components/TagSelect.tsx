@@ -33,9 +33,11 @@ export default function TagSelect({ options, selected, onChange, rankBadges = 0 
             }`}
           >
             {option}
+            {/* UT: 숫자만 담은 원형 배지가 알림/오류로 읽혔다("오류인 거야?" — 주일).
+                6명 중 4명이 순위라는 걸 인지하지 못해, 숫자 대신 '1순위' 텍스트를 그대로 노출한다. */}
             {showRank && (
-              <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] rounded-full bg-primary-500 text-white text-[11px] font-bold flex items-center justify-center">
-                {rank + 1}
+              <span className="absolute -top-2 -right-1.5 px-1.5 h-[18px] rounded-pill bg-primary-500 text-white text-[10px] font-bold leading-[18px] whitespace-nowrap">
+                {rank + 1}순위
               </span>
             )}
           </button>

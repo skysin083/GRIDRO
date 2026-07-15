@@ -9,10 +9,12 @@ export const PARTS = [
   "전공정",
 ] as const;
 
+// UT: BL과 GL은 작업 조건이 갈리는 별개 장르라 묶으면 안 된다는 요구가 3명에게서 나왔다(묵찬·묵해·이려원).
 export const GENRES = [
   "로맨스",
   "로판",
-  "BL/GL",
+  "BL",
+  "GL",
   "무협",
   "액션",
   "학원물",
@@ -43,10 +45,12 @@ export const AUTHOR_TRAITS = [
   "수정 대응 빠름",
 ] as const;
 
+// UT: "어디서는 고정을 치는데 어디서는 프리랜서예요… 기타라도 있었으면"(묵찬) — 복수 선택 + 기타로 연다.
 export const WORK_TYPES = [
   "프리랜서",
   "외주(단건)",
   "고정 어시",
+  "기타",
 ] as const;
 
 export const PLATFORMS = [

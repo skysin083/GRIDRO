@@ -31,7 +31,7 @@ export const EMPTY_FEED_FILTERS: FeedFilters = {
 export function matchesAllActiveFilters(profile: Profile, filters: FeedFilters): boolean {
   if (filters.parts.length > 0 && !filters.parts.some((v) => profile.parts.includes(v))) return false;
   if (filters.genres.length > 0 && !filters.genres.some((v) => profile.preferredGenres.includes(v))) return false;
-  if (filters.workTypes.length > 0 && !filters.workTypes.includes(profile.workType)) return false;
+  if (filters.workTypes.length > 0 && !filters.workTypes.some((v) => profile.workTypes.includes(v))) return false;
   if (filters.csp && !profile.tools.includes("Clip Studio Paint")) return false;
   if (filters.career && profile.careers.length === 0) return false;
   if (filters.authorTraits.length > 0 && !filters.authorTraits.some((v) => profile.authorTraits.includes(v))) return false;

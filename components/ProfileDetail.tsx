@@ -223,7 +223,7 @@ function ProfileDetailInner({ id }: { id: string }) {
               label="작가 특징"
               value={[...profile.authorTraits, profile.authorTraitsNote].filter(Boolean).join(", ") || "-"}
             />
-            <InfoRow label="근무형태" value={profile.workType || "-"} />
+            <InfoRow label="근무형태" value={profile.workTypes.length > 0 ? profile.workTypes.join(" · ") : "-"} />
             <InfoRow label="연락 가능 시간대" value={profile.contactNote || profile.contactTime || "-"} />
           </div>
         </div>

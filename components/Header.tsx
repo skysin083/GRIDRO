@@ -8,7 +8,9 @@ const NAV_TABS = [
   { label: "구인란", href: null },
   { label: "구직란", href: "/feed", match: ["/feed", "/write", "/profile"] },
   { label: "Q&A", href: null },
-  { label: "이력서", href: "/my", match: ["/my"] },
+  // UT: "'내 이력서'로 보이면 내 건 줄 알겠는데 '이력서'라고 되어 있으니 눈에 안 띈다"(멍군).
+  // 이 탭을 내 것으로 인식하지 못한 게 공개·비공개 전환을 못 찾은 선행 원인이었다.
+  { label: "내 이력서", href: "/my", match: ["/my"] },
 ] as const;
 
 export default function Header() {

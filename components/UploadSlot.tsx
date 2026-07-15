@@ -1,15 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Lightbulb } from "lucide-react";
 import { fileToImageUrl } from "@/lib/resizeImage";
 
 const MAX_IMAGES = 10;
 
+export interface UploadTip {
+  part: string;
+  tip: string;
+}
+
 interface UploadSlotProps {
   images: string[];
   onChange: (next: string[]) => void;
-  tips?: string[];
+  tips?: UploadTip[];
   label: string;
   required?: boolean;
 }
@@ -82,13 +87,34 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
         </span>
       </div>
 
-      {tips.length > 0 && (
-        <div className="space-y-1 bg-info/10 rounded-md px-3 py-2">
-          {tips.map((t, i) => (
-            <p key={i} className="text-caption text-info">
-              {t}
-            </p>
-          ))}
+      {/* UT: bg-info/10 + caption 크기라 팁이 흐려서 5명 중 1명만 알아챘고, 파트 미선택 상태에서는
+          아무것도 뜨지 않아 팁의 존재조차 알 수 없었다. 제목·아이콘·파트명을 붙여 먼저 읽히게 하고,
+          미선택 상태에서도 자리를 남겨 "파트를 고르면 팁이 나온다"는 인과를 드러낸다. */}
+      {tips.length > 0 ? (
+        <div className="rounded-md border border-info/30 bg-info/10 px-3.5 py-3 space-y-2">
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-info">
+            <Lightbulb size={14} />
+            이런 그림을 올리면 좋아요
+          </p>
+          <ul className="space-y-1.5">
+            {tips.map(({ part, tip }) => (
+              <li key={part} className="text-[13px] text-neutral-700 leading-relaxed">
+                <span className="font-semibold text-info">{part}</span>
+                <span className="text-neutral-400"> · </span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="rounded-md border border-dashed border-neutral-300 bg-neutral-50 px-3.5 py-3">
+          <p className="flex items-center gap-1.5 text-[13px] text-neutral-500">
+            <Lightbulb size={14} className="text-neutral-400 shrink-0" />
+            <span>
+              위에서 <span className="font-semibold text-neutral-700">작업 파트</span>를 고르면, 어떤 그림을 올리면
+              좋을지 알려드려요
+            </span>
+          </p>
         </div>
       )}
 
@@ -144,10 +170,12 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
                   draggable={false}
                   className="w-full h-full object-cover object-top pointer-events-none"
                 />
+                {/* UT: 호버로만 노출한 탓에 '대표로 지정'을 찾는 데 병목이 생겼다.
+                    터치 기기에는 hover가 없어 발견 자체가 불가능하므로 상시 노출한다. */}
                 <button
                   type="button"
                   onClick={() => removeAt(index)}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-5 transition-colors hover:bg-black/80"
                   aria-label="이미지 삭제"
                 >
                   ×
@@ -160,7 +188,7 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
                   <button
                     type="button"
                     onClick={() => makeCover(index)}
-                    className="absolute bottom-0 left-0 right-0 py-1 text-caption font-medium bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute bottom-0 left-0 right-0 py-1 text-caption font-medium bg-black/60 text-white transition-colors hover:bg-black/80"
                   >
                     대표로 지정
                   </button>

@@ -89,16 +89,17 @@ function Field({
 }
 
 // AD-1: 체크리스트는 이 배열(=폼 순서) 하나에서만 파생된다. 폼 순서를 바꾸면 이 배열만 옮기면 된다.
-// AH-7 순서 반영: 활동명·연락처·한줄소개·소개·파트·그림·장르(선호/불호)·툴·근무형태·경력·연락시간대·특징
+// AH-7 순서 반영: 활동명·연락처·구직 제목·소개·파트·그림·장르(선호/불호)·툴·근무형태·경력·연락시간대·특징
 const FIELD_ORDER = [
   { key: "nickname", label: "활동명", required: true },
   { key: "email", label: "연락처(이메일)", required: true },
-  { key: "intro", label: "한줄소개", required: true },
+  { key: "intro", label: "구직 제목", required: true },
   { key: "bio", label: "소개", required: false },
   { key: "parts", label: "작업 파트", required: true },
   { key: "images", label: "대표 그림", required: true },
   { key: "preferredGenres", label: "선호 장르", required: true },
-  { key: "dislikedGenres", label: "불호 장르", required: true },
+  // UT: "구직하는 입장에서는 가릴 처지가 아닐 것 같아요"(묵해) — 필수로 강제할 항목이 아니다.
+  { key: "dislikedGenres", label: "불호 장르", required: false },
   { key: "tools", label: "사용 툴", required: true },
   { key: "workType", label: "근무형태", required: true },
   { key: "careers", label: "경력", required: false },
@@ -133,14 +134,14 @@ function WritePageInner() {
   const [workStyle, setWorkStyle] = useState<WorkStyle | "">(initialProfile?.workStyle ?? "");
   const [authorTraits, setAuthorTraits] = useState<string[]>(initialProfile?.authorTraits ?? []);
   const [authorTraitsNote, setAuthorTraitsNote] = useState(initialProfile?.authorTraitsNote ?? "");
-  const [workType, setWorkType] = useState(initialProfile?.workType ?? "");
+  const [workTypes, setWorkTypes] = useState<string[]>(initialProfile?.workTypes ?? []);
   const [contactTime, setContactTime] = useState(initialProfile?.contactTime ?? "");
   const [contactNote, setContactNote] = useState(initialProfile?.contactNote ?? "");
   const [isNewcomer, setIsNewcomer] = useState(initialProfile?.isNewcomer ?? false);
   const [careers, setCareers] = useState<CareerEntry[]>(initialProfile?.careers ?? []);
   const [showModal, setShowModal] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-  const [genreError, setGenreError] = useState<"preferredGenres" | "dislikedGenres" | null>(null);
+  const [genreError, setGenreError] = useState<"preferredGenres" | null>(null);
   const [justSaved, setJustSaved] = useState(false);
 
   const canCreateNew = editId !== null || resumes.length < MAX_RESUMES;
@@ -158,7 +159,7 @@ function WritePageInner() {
       workStyle: (workStyle || "무관") as WorkStyle,
       authorTraits,
       authorTraitsNote,
-      workType,
+      workTypes,
       contactTime,
       contactNote,
       intro,
@@ -180,7 +181,7 @@ function WritePageInner() {
       workStyle,
       authorTraits,
       authorTraitsNote,
-      workType,
+      workTypes,
       contactTime,
       contactNote,
       intro,
@@ -216,7 +217,7 @@ function WritePageInner() {
     preferredGenres: preferredGenres.length > 0,
     dislikedGenres: dislikedGenres.length > 0,
     tools: toolNames.length > 0,
-    workType: workType !== "",
+    workType: workTypes.length > 0,
     contactTime: contactTime !== "" || contactNote.trim() !== "",
     careers: careers.length > 0 || isNewcomer,
     authorTraits: authorTraits.length > 0 || authorTraitsNote.trim() !== "",
@@ -234,7 +235,8 @@ function WritePageInner() {
     const firstMissing = requiredFields.find((f) => !doneMap[f.key]);
     if (firstMissing) {
       document.getElementById(`field-${firstMissing.key}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      if (firstMissing.key === "preferredGenres" || firstMissing.key === "dislikedGenres") {
+      // 불호 장르가 선택으로 바뀐 뒤로 장르 중 필수는 선호 장르 하나뿐이다.
+      if (firstMissing.key === "preferredGenres") {
         setGenreError(firstMissing.key);
       }
       return;
@@ -263,15 +265,20 @@ function WritePageInner() {
     router.push("/my");
   };
 
-  const uploadTips = parts.slice(0, 2).map((p) => PART_UPLOAD_TIPS[p]).filter(Boolean);
+  // UT: 워밍업에서 5명 중 3명이 "어떤 그림을 올릴지 고르는 게 제일 귀찮다"고 했고 이 팁이 그 답이었는데,
+  // 정작 자발적으로 알아챈 사람은 1명뿐이었다. 어느 파트의 팁인지 드러나도록 파트명을 함께 넘긴다.
+  const uploadTips = parts
+    .slice(0, 2)
+    .map((part) => (PART_UPLOAD_TIPS[part] ? { part, tip: PART_UPLOAD_TIPS[part] } : null))
+    .filter((t): t is { part: string; tip: string } => t !== null);
 
   if (!canCreateNew) {
     return (
       <div className="max-w-[720px] mx-auto px-5 py-20 text-center space-y-4">
         <p className="text-h3 font-bold text-neutral-900">이력서는 최대 {MAX_RESUMES}개까지 만들 수 있어요</p>
-        <p className="text-body-sm text-neutral-500">이력서 탭에서 기존 이력서를 정리한 뒤 다시 시도해 주세요.</p>
+        <p className="text-body-sm text-neutral-500">내 이력서에서 기존 이력서를 정리한 뒤 다시 시도해 주세요.</p>
         <Button href="/my" variant="dark-pill">
-          이력서 탭으로 이동
+          내 이력서로 이동
         </Button>
       </div>
     );
@@ -318,12 +325,20 @@ function WritePageInner() {
                 </Field>
               </div>
 
-              <Field label="한줄소개" required id="field-intro">
+              {/* UT: 라벨('한줄소개')과 placeholder('제목이에요')가 서로 다른 말을 해서 구직자 5명 중 3명이 막혔다.
+                  구인자는 이 자리에 "뭘 구직하는지"가 있길 원했으므로(주일) 라벨을 제목형으로 통일하고,
+                  설명 대신 실제 예시를 넣는다("예시로라도 써져 있으면" — 멍군). */}
+              <Field
+                label="구직 제목"
+                required
+                id="field-intro"
+                caption="구직란 카드에 크게 보이는 한 문장이에요. 어떤 파트를 구하는지 적어주세요"
+              >
                 <div className="relative">
                   <Input
                     value={intro}
                     onChange={(e) => setIntro(e.target.value.slice(0, 40))}
-                    placeholder="내 이력서의 제목이에요. 어떤 작업을 하는지 한 문장으로 적어주세요"
+                    placeholder="예) 배경·채색 파트 구직 중 · 주 3일 가능"
                     maxLength={40}
                     className="pr-14"
                   />
@@ -337,12 +352,19 @@ function WritePageInner() {
                 </div>
               </Field>
 
-              <Field label="소개" id="field-bio">
+              {/* UT: "한줄소개랑 소개랑 큰 차이가 있는 건가"(멍군) — 두 필드의 역할 차이를 캡션에서 못박는다.
+                  작업 속도는 케이스마다 달라 표준 필드로 못 박는다는 반증이 있었으므로(묵해),
+                  구조화 대신 여기에 자유 기재하도록 예시로 유도한다. */}
+              <Field
+                label="소개"
+                id="field-bio"
+                caption="제목보다 자세한 설명이에요. 카드에는 안 보이고 상세 화면에서 보여요"
+              >
                 <div className="relative">
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value.slice(0, 500))}
-                    placeholder="작업 스타일이나 협업 방식을 자유롭게 적어주세요"
+                    placeholder="예) 컷당 3~4시간 정도 걸리고, 수정 요청은 당일 반영합니다"
                     maxLength={500}
                     rows={4}
                     className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-50 resize-none"
@@ -357,7 +379,14 @@ function WritePageInner() {
                 </div>
               </Field>
 
-              <Field label="작업 파트" required id="field-parts" caption="일하고 싶은 파트부터 순서대로 골라주세요">
+              {/* UT: 1·2순위 파트가 아래 대표 그림 팁을 바꾸는데, 그 연결을 아무도 눈치채지 못했다.
+                  캡션에서 인과를 직접 밝힌다. */}
+              <Field
+                label="작업 파트"
+                required
+                id="field-parts"
+                caption="일하고 싶은 파트부터 순서대로 골라주세요. 1·2순위에 맞춰 아래 '대표 그림' 팁이 바뀌어요"
+              >
                 <TagSelect options={PARTS} selected={parts} onChange={setParts} rankBadges={2} />
               </Field>
 
@@ -378,25 +407,28 @@ function WritePageInner() {
                 />
               </Field>
 
-              <Field label="불호 장르" required id="field-dislikedGenres" caption="1·2순위를 정해두면 안 맞는 작품을 미리 거를 수 있어요">
-                <GenreSelect
-                  options={GENRES}
-                  selected={dislikedGenres}
-                  onChange={(next) => {
-                    setDislikedGenres(next);
-                    if (next.length > 0) setGenreError((cur) => (cur === "dislikedGenres" ? null : cur));
-                  }}
-                  rankBadges={2}
-                  error={genreError === "dislikedGenres"}
-                />
+              {/* UT: 필수라 "아예 안 받는 장르인지"를 두고 혼란이 있었다(멍군). 선택으로 풀고 의미를 캡션에서 밝힌다. */}
+              <Field
+                label="불호 장르"
+                id="field-dislikedGenres"
+                caption="안 맞는 작품을 미리 거를 수 있어요. 가리는 장르가 없다면 비워두세요"
+              >
+                <GenreSelect options={GENRES} selected={dislikedGenres} onChange={setDislikedGenres} rankBadges={2} />
               </Field>
 
               <Field label="사용 툴" required id="field-tools">
                 <TagSelect options={TOOLS} selected={toolNames} onChange={setToolNames} />
               </Field>
 
-              <Field label="근무형태" required id="field-workType">
-                <SingleSelectChips options={WORK_TYPES} value={workType} onChange={setWorkType} />
+              {/* UT: 단일 선택이라 "고정 어시/프리랜서 와리가리"하는 실제 사정을 담을 수 없었다(묵찬).
+                  "다 구하는 사람이 있을 수 있잖아요"(이려원) — 복수 선택으로 연다. */}
+              <Field
+                label="근무형태"
+                required
+                id="field-workType"
+                caption="병행한다면 여러 개 골라도 돼요"
+              >
+                <TagSelect options={WORK_TYPES} selected={workTypes} onChange={setWorkTypes} />
               </Field>
 
               {/* 그룹 경계: 여기부터 경력/연락시간대/특징/성향 — 위아래 각 32px(총 64px) + 구분선 */}

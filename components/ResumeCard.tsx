@@ -89,13 +89,13 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
       </Link>
 
       <div ref={menuRef} className="absolute top-2 right-2">
+        {/* UT: 호버로만 노출하던 탓에 구직자 5명 중 4명이 공개·비공개 전환을 못 찾았다.
+            터치 기기에는 hover가 없어 발견 자체가 불가능하므로 상시 노출한다. */}
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="더보기"
-          className={`w-8 h-8 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm text-neutral-400 transition-all duration-[.18s] hover:bg-neutral-100 hover:text-neutral-800 ${
-            menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
+          className="w-8 h-8 rounded-full flex items-center justify-center bg-white text-neutral-700 border border-neutral-200 shadow-sm transition-colors duration-[.18s] hover:bg-neutral-100 hover:text-neutral-900"
         >
           <MoreHorizontal size={16} />
         </button>
