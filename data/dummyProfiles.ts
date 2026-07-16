@@ -12,7 +12,7 @@ const ago = (ms: number) => now - ms;
 
 type RawDummyProfile = Omit<
   Profile,
-  "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote" | "workTypeNote"
+  "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote" | "cspEdition"
 >;
 
 const rawDummyProfiles: RawDummyProfile[] = [
@@ -21,7 +21,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     nickname: "연아",
     email: "yeona.art@example.com",
     images: img("gujik-yeona", 3),
-    parts: ["채색", "명암"],
+    parts: ["채색", "2도 명암"],
     preferredGenres: ["로맨스", "드라마"],
     dislikedGenres: ["액션"],
     tools: ["Photoshop", "Clip Studio Paint"],
@@ -86,7 +86,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     nickname: "지안",
     email: "jian.shade@example.com",
     images: img("gujik-jian", 2),
-    parts: ["명암", "채색"],
+    parts: ["1도 명암", "채색"],
     preferredGenres: ["스릴러", "드라마"],
     dislikedGenres: ["개그"],
     tools: ["Clip Studio Paint", "Photoshop"],
@@ -118,7 +118,7 @@ const rawDummyProfiles: RawDummyProfile[] = [
     nickname: "태양",
     email: "taeyang.line@example.com",
     images: img("gujik-taeyang", 2),
-    parts: ["선화", "명암"],
+    parts: ["선화", "1도 명암"],
     preferredGenres: ["무협", "액션"],
     dislikedGenres: ["BL", "GL"],
     tools: ["SAI"],
@@ -170,5 +170,6 @@ export const dummyProfiles: Profile[] = rawDummyProfiles.map((p) => ({
   careers: [],
   authorTraitsNote: "",
   contactNote: "",
-  workTypeNote: "",
+  // 클튜를 쓰는 더미에만 에디션을 채워 상세에서 "Clip Studio Paint EX"처럼 보이는 걸 확인한다.
+  cspEdition: p.tools.includes("Clip Studio Paint") ? "EX" : "",
 }));

@@ -26,7 +26,9 @@ export default function TagSelect({ options, selected, onChange, rankBadges = 0 
             key={option}
             type="button"
             onClick={() => toggle(option)}
-            className={`relative text-body-sm px-3 py-1.5 rounded-pill border transition-colors duration-[.18s] ${
+            // relative는 순위 배지를 얹을 때만 준다. 배지가 없는 칩까지 relative면 페인트 층이 올라가서,
+            // 위쪽 경력 카드에서 연 날짜 드롭다운을 이 칩들이 덮어버린다.
+            className={`${showRank ? "relative" : ""} text-body-sm px-3 py-1.5 rounded-pill border transition-colors duration-[.18s] ${
               active
                 ? "bg-primary-50 text-primary-700 border-primary-500"
                 : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400"

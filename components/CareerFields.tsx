@@ -5,7 +5,7 @@ import { CareerEntry } from "@/types/profile";
 import { PARTS, PLATFORMS } from "@/lib/constants";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import TagSelect from "@/components/TagSelect";
+import GenreSelect from "@/components/GenreSelect";
 import YearPicker from "@/components/ui/YearPicker";
 
 function emptyCareer(): CareerEntry {
@@ -40,9 +40,11 @@ function CareerCard({
   }, []);
 
   return (
+    // 등장 후에는 transform을 아예 걷어낸다. translate-y-0은 값이 0이어도 쌓임 맥락을 만들어서,
+    // 카드 안에서 연 날짜 드롭다운이 카드 밖으로 올라오지 못하고 아래 칩들에 덮인다.
     <div
       className={`bg-neutral-50 rounded-md p-5 space-y-3 transition-all duration-[.25s] ease-[cubic-bezier(.22,.61,.36,1)] ${
-        entered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1.5"
+        entered ? "opacity-100" : "opacity-0 -translate-y-1.5"
       }`}
     >
       <div className="flex items-center justify-between gap-3">
@@ -70,7 +72,8 @@ function CareerCard({
         />
       )}
 
-      <TagSelect options={PARTS} selected={entry.parts} onChange={(parts) => onUpdate({ parts })} />
+      {/* 작업 파트와 같은 선택기를 쓴다 — 목록에 없는 파트를 직접 적을 수 있어야 한다. */}
+      <GenreSelect options={PARTS} selected={entry.parts} onChange={(parts) => onUpdate({ parts })} />
 
       <div className="flex items-center gap-2 text-body-sm text-neutral-500">
         <YearPicker

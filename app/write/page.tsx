@@ -13,6 +13,8 @@ import {
   WORK_TYPES,
   CONTACT_TIMES,
   PART_UPLOAD_TIPS,
+  CSP_EDITION_TOOL,
+  CSP_EDITIONS,
 } from "@/lib/constants";
 import UploadSlot from "@/components/UploadSlot";
 import TagSelect from "@/components/TagSelect";
@@ -133,11 +135,13 @@ function WritePageInner() {
   const [preferredGenres, setPreferredGenres] = useState<string[]>(initialProfile?.preferredGenres ?? []);
   const [dislikedGenres, setDislikedGenres] = useState<string[]>(initialProfile?.dislikedGenres ?? []);
   const [toolNames, setToolNames] = useState<string[]>(initialProfile?.tools ?? []);
+  const [cspEdition, setCspEdition] = useState<(typeof CSP_EDITIONS)[number] | "">(
+    (initialProfile?.cspEdition as (typeof CSP_EDITIONS)[number]) ?? ""
+  );
   const [workStyle, setWorkStyle] = useState<WorkStyle | "">(initialProfile?.workStyle ?? "");
   const [authorTraits, setAuthorTraits] = useState<string[]>(initialProfile?.authorTraits ?? []);
   const [authorTraitsNote, setAuthorTraitsNote] = useState(initialProfile?.authorTraitsNote ?? "");
   const [workTypes, setWorkTypes] = useState<string[]>(initialProfile?.workTypes ?? []);
-  const [workTypeNote, setWorkTypeNote] = useState(initialProfile?.workTypeNote ?? "");
   const [contactTimes, setContactTimes] = useState<string[]>(initialProfile?.contactTimes ?? []);
   const [contactNote, setContactNote] = useState(initialProfile?.contactNote ?? "");
   const [isNewcomer, setIsNewcomer] = useState(initialProfile?.isNewcomer ?? false);
@@ -158,11 +162,12 @@ function WritePageInner() {
       preferredGenres,
       dislikedGenres,
       tools: toolNames,
+      // 클튜를 빼면 에디션 값도 남기지 않는다 — 안 쓰는 툴의 에디션이 카드에 남으면 안 된다.
+      cspEdition: toolNames.includes(CSP_EDITION_TOOL) ? cspEdition : "",
       workStyle: (workStyle || "무관") as WorkStyle,
       authorTraits,
       authorTraitsNote,
       workTypes,
-      workTypeNote,
       contactTimes,
       contactNote,
       intro,
@@ -181,11 +186,11 @@ function WritePageInner() {
       preferredGenres,
       dislikedGenres,
       toolNames,
+      cspEdition,
       workStyle,
       authorTraits,
       authorTraitsNote,
       workTypes,
-      workTypeNote,
       contactTimes,
       contactNote,
       intro,
@@ -339,7 +344,7 @@ function WritePageInner() {
                 label="구직 제목"
                 required
                 id="field-intro"
-                caption="구직란 카드에 크게 보이는 한 문장이에요. 어떤 파트를 구하는지 적어주세요"
+                caption="구직란 카드에 크게 보이는 한 문장이에요. 어떤 파트를 구직하는지 적어주세요"
               >
                 <div className="relative">
                   <Input
@@ -391,7 +396,8 @@ function WritePageInner() {
                 id="field-parts"
                 caption="일하고 싶은 파트부터 순서대로 골라주세요. 1·2순위에 맞춰 아래 '대표 그림' 팁이 바뀌어요"
               >
-                <TagSelect options={PARTS} selected={parts} onChange={setParts} rankBadges={2} />
+                {/* 공정이 계속 세분화돼 목록으로 다 덮을 수 없다 — 장르와 같이 직접 추가할 수 있게 둔다. */}
+                <GenreSelect options={PARTS} selected={parts} onChange={setParts} rankBadges={2} />
               </Field>
 
               <div id="field-images" className="scroll-mt-24">
@@ -421,22 +427,25 @@ function WritePageInner() {
               </Field>
 
               <Field label="사용 툴" required id="field-tools">
-                <TagSelect options={TOOLS} selected={toolNames} onChange={setToolNames} />
+                <GenreSelect options={TOOLS} selected={toolNames} onChange={setToolNames} />
+                {/* UT: "사람들 EX인지 PRO인지도 쓰더라"(재갈). 클튜만 에디션에 따라 되는 작업이 갈려서
+                    (EX만 웹툰 다중 페이지 내보내기) 고른 사람에게만 한 단계 더 묻는다. */}
+                {toolNames.includes(CSP_EDITION_TOOL) && (
+                  <div className="mt-3 rounded-md bg-neutral-50 border border-neutral-200 px-3.5 py-3 space-y-2">
+                    <p className="text-[13px] font-semibold text-neutral-700">
+                      Clip Studio Paint 에디션
+                      <span className="ml-1.5 font-normal text-neutral-400">선택</span>
+                    </p>
+                    <SingleSelectChips options={CSP_EDITIONS} value={cspEdition} onChange={setCspEdition} />
+                  </div>
+                )}
               </Field>
 
               {/* UT: 단일 선택이라 "고정 어시/프리랜서 와리가리"하는 실제 사정을 담을 수 없었다(묵찬).
                   "다 구하는 사람이 있을 수 있잖아요"(이려원) — 복수 선택으로 연다. */}
               <Field label="근무형태" required id="field-workType">
-                <TagSelect options={WORK_TYPES} selected={workTypes} onChange={setWorkTypes} />
-                {/* '기타'는 고르고 끝나면 구인자에게 아무 정보가 안 된다. 고른 사람만 직접 적게 한다. */}
-                {workTypes.includes("기타") && (
-                  <Input
-                    value={workTypeNote}
-                    onChange={(e) => setWorkTypeNote(e.target.value)}
-                    placeholder="어떤 형태인지 적어주세요 (예: 단편만, 성수기에만 참여)"
-                    className="mt-3"
-                  />
-                )}
+                {/* '기타' 칩 + 별도 입력칸 대신 직접 추가로 통일했다 — 고른 말이 그대로 카드에 노출된다. */}
+                <GenreSelect options={WORK_TYPES} selected={workTypes} onChange={setWorkTypes} />
               </Field>
 
               {/* 그룹 경계: 여기부터 경력/연락시간대/특징/성향 — 위아래 각 32px(총 64px) + 구분선 */}
@@ -472,12 +481,15 @@ function WritePageInner() {
                 />
               </Field>
 
-              <Field label="작가 특징" id="field-authorTraits" caption="구체적으로 적을수록 컨택이 빨라져요">
+              {/* 보조설명을 지우고 그 역할을 예시가 대신한다.
+                  구인자 3/4가 작업 속도를 원했지만 파트·방식마다 달라 필드로 못 박지 못했으므로,
+                  여기 예시로 "몇 컷에 몇 시간"을 유도한다. */}
+              <Field label="작가 특징" id="field-authorTraits">
                 <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
                 <Input
                   value={authorTraitsNote}
                   onChange={(e) => setAuthorTraitsNote(e.target.value)}
-                  placeholder="여기에 없는 특징을 직접 적어주세요"
+                  placeholder="예) 3컷에 1시간 정도 걸려요 · 주시면 바로 작업 가능해요"
                   className="mt-3"
                 />
               </Field>

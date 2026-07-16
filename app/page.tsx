@@ -5,25 +5,14 @@ import Badge from "@/components/ui/Badge";
 import PageHeader from "@/components/ui/PageHeader";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 
-const PAINPOINTS = [
-  {
-    // AJ-1: 플레이스홀더 — 인터뷰 원문 대조 후 최종 문장 확정 필요
-    quote: "그림은 자신 있는데, 방사 카페에 구직글만 쓰려고 하면 뭘 어떻게 써야 할지 막막하더라고요.",
-    source: "인터뷰 · 어시 2년차",
-  },
-  {
-    quote: "남의 글을 베껴 쓰다 보니 정작 제 강점은 하나도 안 들어갔어요.",
-    source: "설문 · 어시 1년차",
-  },
-  {
-    quote: "형식·항목이 다 달라서, 뭘 먼저 봐야 할지도 모르겠더라고요.",
-    source: "인터뷰 · 구인자",
-  },
-];
-
+// UT: "너무 설명적이다"(묵찬) · "3개 3개 3개 형식이 너무 많아, 불필요한 듯"(재갈) ·
+// "이거 설명인가요?"(이려원) — 3장짜리 카드 섹션이 셋이나 겹쳐 페이지가 설명서로 읽혔다.
+// 문제를 카드로 늘어놓던 섹션(PAINPOINTS)과 후기 섹션은 걷어내고, 남길 것만 남긴다.
+//
+// AI 붙여넣기 항목도 뺐다 — 아직 구현되지 않은 기능이라 랜딩에 걸어두면 없는 걸 약속하게 된다.
+// 번호(01·02·03)도 지웠다. 순서가 있는 절차가 아니라 나란한 특징이라 숫자가 뜻하는 게 없었다.
 const GUIDE_POINTS = [
   {
-    number: "01",
     title: "백지 대신 질문지",
     description: (
       <>
@@ -34,36 +23,10 @@ const GUIDE_POINTS = [
     fine: "작업 파트 → 대표 그림 → 장르 → 근무조건",
   },
   {
-    number: "02",
     title: "구인자가 보는 순서 그대로",
-    description: "구인자 27명에게 '가장 먼저 확인하는 게 뭐냐'고 직접 물었어요. 답변에 나온 순서 그대로 폼을 짰어요.",
+    description:
+      "현직 작가·프리랜서에게 '가장 먼저 확인하는 게 뭐냐'고 직접 물었어요. 답변에 나온 순서 그대로 폼을 짰어요.",
     fine: "공정 → 그림 → 장르 → 근무조건",
-  },
-  {
-    number: "03",
-    title: "이미 쓴 글이 있다면 붙여넣기",
-    description: (
-      <>
-        <span className="text-neutral-800 font-bold">폼에 들어가서 &apos;붙여넣고 시작&apos;을 누르면</span>, 방사 카페 등에
-        써둔 구직글을 AI가 항목별로 나눠 담아요. 채워진 내용은 언제든 직접 고칠 수 있어요.
-      </>
-    ),
-    fine: "글만 읽어요. 그림은 분석하지 않아요.",
-  },
-];
-
-const UT_REVIEWS = [
-  {
-    quote: "순서대로 채우기만 했는데 방사 카페에 올렸던 글보다 훨씬 정리돼 보였어요. 3분도 안 걸렸어요.",
-    source: "UT 참여자 · 어시 2년차",
-  },
-  {
-    quote: "뭘 강조해야 할지 몰랐는데, 질문에 답하다 보니 제 강점이 저절로 정리됐어요.",
-    source: "UT 참여자 · 어시 1년차",
-  },
-  {
-    quote: "올리기 전에 미리 볼 수 있어서 부담 없이 끝까지 채울 수 있었어요.",
-    source: "UT 참여자 · 어시 3년차",
   },
 ];
 
@@ -81,16 +44,20 @@ export default function LandingPage() {
               그림 프리랜서 구인구직 플랫폼&nbsp;<span className="text-primary-500 font-extrabold">그리드로</span>
             </span>
 
+            {/* UT: 3명이 이 페이지를 "가이드/설명 사이트"로 읽었는데, h1이 스스로를 '구직 가이드'라고
+                말하고 있었다. 여기서 만드는 것이 무엇인지(이력서)와 얼마나 걸리는지를 그대로 적는다. */}
             <h1 className="text-hero text-neutral-900">
               <span className="text-primary-500">그림 프리랜서</span>를 위한
               <br />
-              구직 가이드를 준비했어요.
+              구직 이력서, 3분이면 끝나요.
             </h1>
 
+            {/* "27명"은 재갈이 "너무 적어 보여"라고 했고, 묵찬은 "인원수보다 직업을 보여주는 게
+                훨씬 와닿을 것"이라고 했다 — 숫자를 빼면 두 지적이 같이 풀린다. */}
             <p className="text-[17px] leading-[1.6] text-neutral-500">
-              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 이력서가 완성돼요.</span>
+              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>
               <br />
-              구인자 27명에게 직접 물어본 순서 그대로 정리해뒀어요.
+              현직 작가·프리랜서에게 직접 물어본 순서 그대로 정리해뒀어요.
             </p>
 
             <div className="flex items-center gap-5 flex-wrap">
@@ -137,51 +104,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* I-3 페인포인트 */}
-      <section className="bg-neutral-50 border-y border-neutral-200 py-[76px] md:py-[112px]">
+      {/* I-4 이 서비스가 다르게 하는 것 */}
+      <section className="bg-white border-t border-neutral-200 py-[76px] md:py-[112px]">
         <div className="max-w-[1160px] mx-auto px-5 md:px-10">
           <ScrollReveal>
-            <PageHeader
-              title="실력이 아니라, 쓰는 방법이 막혔던 거예요."
-              lead="그림도, 이력도 이미 있어요. 정리할 방법만 없었을 뿐이에요."
-            />
+            <PageHeader title="두 가지만 바꿨어요." lead="막막한 백지 대신, 채우면 되는 질문지로." />
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
-            {PAINPOINTS.map((p, i) => (
-              <ScrollReveal key={p.source} delayMs={i * 90}>
-                <div className="group h-full bg-white border border-neutral-200 rounded-lg px-6 py-[26px]">
-                  <span className="block text-[26px] font-extrabold text-primary-200 transition-colors duration-[.18s] group-hover:text-primary-400">
-                    &ldquo;
-                  </span>
-                  <p className="text-left text-[16px] leading-[1.7] text-neutral-700 mt-2">{p.quote}</p>
-                  <p className="text-caption font-bold text-neutral-400 mt-4">{p.source}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-
-          <p className="text-body-sm font-semibold text-neutral-400 text-center mt-10">
-            설문 구직자 66명 · 구인자 27명 / 심층 인터뷰 6명
-          </p>
-        </div>
-      </section>
-
-      {/* I-4 구직 가이드 3포인트 */}
-      <section className="bg-white py-[76px] md:py-[112px]">
-        <div className="max-w-[1160px] mx-auto px-5 md:px-10">
-          <ScrollReveal>
-            <PageHeader title="세 가지만 바꿨어요." lead="막막한 백지 대신, 채우면 되는 질문지로." />
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
             {GUIDE_POINTS.map((point, i) => (
               <ScrollReveal key={point.title} delayMs={i * 90}>
                 <div className="h-full bg-white border border-neutral-200 rounded-lg px-8 py-7 flex flex-col">
-                  <span className="inline-flex w-fit text-caption font-extrabold text-primary-500 bg-primary-50 rounded-sm px-2 py-1">
-                    {point.number}
-                  </span>
-                  <h3 className="text-h3 font-bold text-neutral-900 mt-4">{point.title}</h3>
+                  <h3 className="text-h3 font-bold text-neutral-900">{point.title}</h3>
                   <p className="text-body leading-[1.72] text-neutral-500 mt-2">{point.description}</p>
                   <div className="mt-auto pt-5">
                     <div className="border-t border-dashed border-neutral-200 pt-3">
@@ -253,31 +187,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* I-6 UT 후기 */}
-      <section className="bg-neutral-50 py-[76px] md:py-[112px]">
-        <div className="max-w-[1160px] mx-auto px-5 md:px-10">
-          <ScrollReveal>
-            <PageHeader
-              title="먼저 써본 분들의 이야기"
-              lead="그림 프리랜서 6명과 함께 작성 과정을 테스트했어요."
-            />
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-            {UT_REVIEWS.map((review, i) => (
-              <ScrollReveal key={review.source} delayMs={i * 90}>
-                <div className="h-full bg-white border border-neutral-200 rounded-lg px-6 py-6">
-                  <p className="text-primary-400 text-[13px] tracking-[2px]">★★★★★</p>
-                  <p className="text-body leading-[1.75] text-neutral-700 mt-3">{review.quote}</p>
-                  <div className="border-t border-neutral-200 mt-4 pt-3">
-                    <p className="text-caption font-bold text-neutral-400">{review.source}</p>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 후기 섹션은 걷어냈다. 실제 UT 전에 만든 예시 문장에 별점까지 붙어 있어, 그대로 두면
+          아무도 한 적 없는 말을 후기로 내보내게 된다. 실제 발언을 쓰려면 당사자 동의가 먼저다. */}
 
       {/* I-7 최종 CTA (가운데 정렬 허용 섹션) */}
       <section

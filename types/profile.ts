@@ -23,13 +23,13 @@ export interface Profile {
   preferredGenres: string[];
   dislikedGenres: string[];
   tools: string[];
+  /** Clip Studio Paint를 고른 경우의 에디션(EX/PRO/DEBUT). 에디션마다 되는 작업이 달라 구인자가 확인한다. */
+  cspEdition: string;
   workStyle: WorkStyle;
   authorTraits: string[];
   authorTraitsNote: string;
   /** UT: 고정 어시와 프리랜서를 병행하는 경우가 흔해 단일 선택이 불가능했다(묵찬·이려원·재갈). */
   workTypes: string[];
-  /** workTypes에 "기타"를 골랐을 때 직접 적는 설명. */
-  workTypeNote: string;
   contactTimes: string[];
   contactNote: string;
   intro: string;

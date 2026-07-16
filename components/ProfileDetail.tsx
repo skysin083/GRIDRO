@@ -2,11 +2,12 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useProfileById } from "@/lib/getProfileById";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
 import { usePublishRequest } from "@/lib/usePublishRequest";
+import { CSP_EDITION_TOOL } from "@/lib/constants";
 import { CareerEntry } from "@/types/profile";
 import Tag from "@/components/ui/Tag";
 import Button from "@/components/ui/Button";
@@ -46,6 +47,19 @@ function CareerInfoRow({ careers }: { careers: CareerEntry[] }) {
               {[c.title, platformLabel, formatPeriod(c)].filter(Boolean).join(" · ")}
             </p>
             {c.memo && <p className="text-[13px] text-neutral-500">{c.memo}</p>}
+            {/* 링크는 입력만 받고 상세에서 렌더되지 않아, 적어도 보이지 않았다.
+                작품 링크는 구인자가 실제로 눌러보는 정보라 새 탭으로 연다. */}
+            {c.link.trim() && (
+              <a
+                href={c.link.trim()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[13px] text-primary-600 underline underline-offset-2 hover:text-primary-700 break-all"
+              >
+                작품 보러 가기
+                <ExternalLink size={12} className="shrink-0" />
+              </a>
+            )}
           </div>
           );
         })}
@@ -221,12 +235,12 @@ function ProfileDetailInner({ id }: { id: string }) {
               아래 정보 항목이 sticky 블록에 가려 못 보이는 문제(스크롤 충돌)를 피한다. */}
           <div className="hidden md:block md:sticky md:top-[88px] print:hidden">
             <ActionButtons
-          isOwnResume={isOwnResume}
-          isPublished={ownResume?.isPublished ?? false}
-          id={id}
-          onContact={() => setShowContact(true)}
-          onTogglePublish={() => requestPublish(id)}
-        />
+              isOwnResume={isOwnResume}
+              isPublished={ownResume?.isPublished ?? false}
+              id={id}
+              onContact={() => setShowContact(true)}
+              onTogglePublish={() => requestPublish(id)}
+            />
           </div>
 
           <div className="border-t border-neutral-200 pt-5 space-y-5">
@@ -239,7 +253,14 @@ function ProfileDetailInner({ id }: { id: string }) {
             <InfoRow label="작업물 성향" value={profile.workStyle} />
             <InfoRow
               label="사용 툴"
-              value={profile.tools.join(", ") || "-"}
+              // 클튜는 에디션까지 붙여 보여준다 — 에디션에 따라 되는 작업이 갈리는 걸 구인자가 본다.
+              value={
+                profile.tools
+                  .map((t) =>
+                    t === CSP_EDITION_TOOL && profile.cspEdition ? `${t} ${profile.cspEdition}` : t
+                  )
+                  .join(", ") || "-"
+              }
             />
             <InfoRow
               label="작가 특징"
@@ -247,14 +268,7 @@ function ProfileDetailInner({ id }: { id: string }) {
             />
             <InfoRow
               label="근무형태"
-              value={
-                profile.workTypes.length > 0
-                  ? // '기타'는 직접 적은 설명으로 바꿔 보여준다 — '기타'라는 말만 남으면 정보가 없다.
-                    profile.workTypes
-                      .map((w) => (w === "기타" ? profile.workTypeNote.trim() || "기타" : w))
-                      .join(" · ")
-                  : "-"
-              }
+              value={profile.workTypes.length > 0 ? profile.workTypes.join(" · ") : "-"}
             />
             <InfoRow
               label="연락 가능 시간대"
@@ -370,8 +384,10 @@ function ProfileDetailInner({ id }: { id: string }) {
 
       {/* AO-1: 하단 고정 탭바(AM-1)가 사라져 이 버튼 바가 모바일의 유일한 화면 하단 고정
           요소가 됐다 — 세이프에어리어 패딩도 이제 여기서 처리한다. */}
+      {/* 경계선으로 자르는 대신 위쪽을 흰색으로 흘려보낸다 — 바를 구분선으로 못 박지 않으면서
+          버튼 뒤로 지나가는 내용이 비쳐 읽기 어려워지는 것만 막는다. 배경 자체를 빼면 글자가 겹친다. */}
       <div
-        className="md:hidden print:hidden fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-5 pt-3"
+        className="md:hidden print:hidden fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-white from-70% to-transparent px-5 pt-8"
         style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
       >
         <ActionButtons
