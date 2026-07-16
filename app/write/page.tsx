@@ -483,10 +483,9 @@ function WritePageInner() {
                 />
               </Field>
 
-              {/* 보조설명을 지우고 그 역할을 예시가 대신한다.
-                  구인자 3/4가 작업 속도를 원했지만 파트·방식마다 달라 필드로 못 박지 못했으므로,
-                  여기 예시로 "몇 컷에 몇 시간"을 유도한다. */}
-              <Field label="작가 특징" id="field-authorTraits">
+              {/* placeholder 예시가 "몇 컷에 몇 시간"처럼 구체적인 작성법을 유도한다.
+                  caption으로 작성 동기를 살려두면 입력 전부터 방향이 잡힌다. */}
+              <Field label="작가 특징" id="field-authorTraits" caption="구체적으로 쓸수록 구인자 눈에 띄어요">
                 <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
                 <Input
                   value={authorTraitsNote}

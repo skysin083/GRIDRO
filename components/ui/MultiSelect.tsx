@@ -69,39 +69,45 @@ export default function MultiSelect({ label, options, value, onChange, allLabel 
           <div
             style={{ position: "fixed", top: pos.top, left: pos.left }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="z-50 w-48 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 space-y-0.5"
+            className={`z-50 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 ${
+              options.length >= 7 ? "w-56" : "w-44"
+            }`}
           >
+            {/* '전체' 리셋은 전체 너비 단독 배치 */}
             <button
               type="button"
               onClick={() => onChange([])}
-              className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
+              className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors mb-1 ${
                 value.length === 0 ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
               }`}
             >
               {allLabel}
             </button>
-            {options.map((option) => {
-              const checked = value.includes(option);
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => toggle(option)}
-                  className={`w-full flex items-center gap-2 text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
-                    checked ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
-                  }`}
-                >
-                  <span
-                    className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-colors ${
-                      checked ? "bg-neutral-900 border-neutral-900" : "border-neutral-300"
+            {/* 7개 이상이면 2열, 미만이면 1열 */}
+            <div className={options.length >= 7 ? "grid grid-cols-2 gap-0.5" : "space-y-0.5"}>
+              {options.map((option) => {
+                const checked = value.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => toggle(option)}
+                    className={`w-full flex items-center gap-1.5 text-left text-body-sm px-2.5 py-2 rounded-md transition-colors ${
+                      checked ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
                     }`}
                   >
-                    {checked && <Check size={12} className="text-white" />}
-                  </span>
-                  {option}
-                </button>
-              );
-            })}
+                    <span
+                      className={`w-3.5 h-3.5 shrink-0 rounded border flex items-center justify-center transition-colors ${
+                        checked ? "bg-neutral-900 border-neutral-900" : "border-neutral-300"
+                      }`}
+                    >
+                      {checked && <Check size={10} className="text-white" />}
+                    </span>
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
           </div>,
           document.body
         )}

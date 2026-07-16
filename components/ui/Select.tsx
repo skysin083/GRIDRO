@@ -65,35 +65,41 @@ export default function Select({ label, options, value, onChange, allLabel = "�
           <div
             style={{ position: "fixed", top: pos.top, left: pos.left }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="z-50 w-44 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 space-y-0.5"
+            className={`z-50 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 ${
+              options.length >= 7 ? "w-56" : "w-44"
+            }`}
           >
+            {/* '선택 안 함'은 전체 너비로 단독 배치 */}
             <button
               type="button"
               onClick={() => {
                 onChange("");
                 setOpen(false);
               }}
-              className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
+              className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors mb-1 ${
                 !value ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
               }`}
             >
               {allLabel}
             </button>
-            {options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => {
-                  onChange(option);
-                  setOpen(false);
-                }}
-                className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
-                  value === option ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+            {/* 7개 이상이면 2열, 미만이면 1열 */}
+            <div className={options.length >= 7 ? "grid grid-cols-2 gap-0.5" : "space-y-0.5"}>
+              {options.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    onChange(option);
+                    setOpen(false);
+                  }}
+                  className={`w-full text-left text-body-sm px-3 py-2 rounded-md transition-colors ${
+                    value === option ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>,
           document.body
         )}

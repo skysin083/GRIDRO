@@ -43,30 +43,6 @@ interface FilterBarProps {
   onChange: (next: FeedFilters) => void;
 }
 
-function QuickChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 text-body-sm px-3 py-1.5 rounded-pill border transition-colors duration-[.18s] ${
-        active
-          ? "bg-neutral-900 border-neutral-900 text-white hover:bg-neutral-700"
-          : "bg-white border-neutral-200 text-neutral-600 hover:border-neutral-400"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
 function DropdownGroup({ filters, onChange }: FilterBarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -82,57 +58,6 @@ function DropdownGroup({ filters, onChange }: FilterBarProps) {
   );
 }
 
-// AL-3: 확정 퀵칩 8종. 각 칩은 대응 드롭다운 필터의 단축키 — 별도 상태 없이 같은 filters 객체를 그대로
-// 읽고 쓰기 때문에 드롭다운 ↔ 퀵칩 양방향 동기화가 자동으로 이루어진다.
-type QuickChipDef =
-  | { label: string; kind: "boolean"; field: "career" | "csp" }
-  | { label: string; kind: "array"; field: "parts" | "genres" | "authorTraits"; value: string };
-
-const QUICK_CHIPS: readonly QuickChipDef[] = [
-  { label: "연재 경력 있음", kind: "boolean", field: "career" },
-  { label: "Clip Studio Paint", kind: "boolean", field: "csp" },
-  { label: "밑색", kind: "array", field: "parts", value: "밑색" },
-  { label: "명암", kind: "array", field: "parts", value: "명암" },
-  { label: "로맨스", kind: "array", field: "genres", value: "로맨스" },
-  { label: "액션", kind: "array", field: "genres", value: "액션" },
-  { label: "연락 잘됨", kind: "array", field: "authorTraits", value: "연락 잘됨" },
-  { label: "피드백 수용 잘함", kind: "array", field: "authorTraits", value: "피드백 수용 잘함" },
-];
-
-function QuickChips({ filters, onChange }: FilterBarProps) {
-  return (
-    <>
-      {QUICK_CHIPS.map((chip) => {
-        if (chip.kind === "boolean") {
-          const active = filters[chip.field];
-          return (
-            <QuickChip
-              key={chip.label}
-              label={chip.label}
-              active={active}
-              onClick={() => onChange({ ...filters, [chip.field]: !active })}
-            />
-          );
-        }
-        const list = filters[chip.field];
-        const active = list.includes(chip.value);
-        return (
-          <QuickChip
-            key={chip.label}
-            label={chip.label}
-            active={active}
-            onClick={() =>
-              onChange({
-                ...filters,
-                [chip.field]: active ? list.filter((v) => v !== chip.value) : [...list, chip.value],
-              })
-            }
-          />
-        );
-      })}
-    </>
-  );
-}
 
 function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -190,11 +115,6 @@ export default function FilterBar({ filters, onChange, resultCount }: FilterBarW
                 selected={filters.workTypes}
                 onChange={(workTypes) => onChange({ ...filters, workTypes })}
               />
-            </FilterSection>
-            <FilterSection title="빠른 필터">
-              <div className="flex flex-wrap gap-2">
-                <QuickChips filters={filters} onChange={onChange} />
-              </div>
             </FilterSection>
           </div>
 

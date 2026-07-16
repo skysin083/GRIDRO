@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { Resume } from "@/store/useProfileStore";
-import { BUMP_COOLDOWN_MS, isProfileComplete } from "@/store/useProfileStore";
+import { getRemainingCooldownMs, isProfileComplete, useProfileStore } from "@/store/useProfileStore";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
 
 function formatRemaining(ms: number) {
   const totalMinutes = Math.max(0, Math.ceil(ms / 60000));
@@ -32,6 +33,9 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
   const [justBumped, setJustBumped] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const menuRef = useRef<HTMLDivElement>(null);
+  // B방식: 쿨다운은 이력서 단위가 아닌 유저 레벨(lastActivityAt) 기준
+  const lastActivityAt = useProfileStore((s) => s.lastActivityAt);
+  const toast = useToast();
 
   useEffect(() => {
     if (!resume.isPublished) return;
@@ -48,7 +52,7 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  const remainingMs = resume.profile.publishedAt ? BUMP_COOLDOWN_MS - (now - resume.profile.publishedAt) : 0;
+  const remainingMs = getRemainingCooldownMs(lastActivityAt, now);
   const onCooldown = remainingMs > 0;
   const complete = isProfileComplete(resume.profile);
 
@@ -77,11 +81,12 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
             />
           )}
         </div>
-        <div className="px-3 pt-3 space-y-1.5">
-          <p className="text-body-sm font-bold text-neutral-900">{resume.profile.nickname}</p>
-          <div className="flex items-center gap-2">
+        <div className="px-3 pt-3">
+          {/* 닉네임 + 공개 상태 배지를 한 줄에 — 줄을 따로 쓰면 카드가 길어진다 */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-body-sm font-bold text-neutral-900 truncate">{resume.profile.nickname}</p>
             {resume.isPublished && resume.profile.publishedAt && (
-              <span className="text-caption text-neutral-400">{formatRelativeTime(resume.profile.publishedAt)} 공개</span>
+              <span className="text-caption text-neutral-400 shrink-0">{formatRelativeTime(resume.profile.publishedAt)} 공개</span>
             )}
             <Badge variant={resume.isPublished ? "primary" : "neutral"}>{resume.isPublished ? "공개 중" : "비공개"}</Badge>
           </div>
@@ -147,7 +152,7 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
         {resume.isPublished ? (
           <Button
             variant="primary"
-            size="sm"
+            size="md"
             className="w-full"
             disabled={onCooldown && !justBumped}
             onClick={handleBump}
@@ -155,21 +160,22 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
             {justBumped ? "맨 위로 올렸어요" : onCooldown ? `끌올 가능까지 ${formatRemaining(remainingMs)}` : "끌올"}
           </Button>
         ) : (
-          <>
-            <Button
-              variant="dark-pill"
-              size="sm"
-              className="w-full"
-              arrow
-              disabled={!complete}
-              onClick={onRequestPublish}
-            >
-              구직란에 올리기
-            </Button>
-            {!complete && (
-              <p className="text-caption text-neutral-400 text-center mt-1.5">필수 항목을 채우면 올릴 수 있어요</p>
-            )}
-          </>
+          // 미완성이면 버튼은 눌리지만 토스트로 안내 — 보조 텍스트 줄을 없애 카드 높이를 줄인다
+          <Button
+            variant="dark-pill"
+            size="md"
+            className="w-full"
+            arrow
+            onClick={() => {
+              if (!complete) {
+                toast.show("필수 항목을 다 채워야 올릴 수 있어요", "danger");
+                return;
+              }
+              onRequestPublish();
+            }}
+          >
+            구직란에 올리기
+          </Button>
         )}
       </div>
     </Card>

@@ -12,6 +12,8 @@ export interface Resume {
 interface ProfileStore {
   resumes: Resume[];
   dummyProfiles: Profile[];
+  /** B방식 유저 레벨 쿨다운 — 공개/끌올 모두 이 시각 기준 48h 공유 */
+  lastActivityAt: number | null;
   actions: {
     saveResume: (id: string | null, profile: Profile) => string;
     deleteResume: (id: string) => void;
@@ -41,6 +43,16 @@ export function isProfileComplete(profile: Profile): boolean {
   );
 }
 
+/**
+ * B방식 유저 레벨 쿨다운 체크.
+ * 끌올(bumpResume)과 공개(publishResume) 모두 lastActivityAt 기준 48h를 공유한다.
+ * 비공개→재공개를 반복해도 쿨다운이 소비되므로 피드 어뷰징을 방지한다.
+ */
+export function getRemainingCooldownMs(lastActivityAt: number | null, now: number): number {
+  if (lastActivityAt == null) return 0;
+  return Math.max(0, BUMP_COOLDOWN_MS - (now - lastActivityAt));
+}
+
 let resumeSeq = 0;
 function generateResumeId() {
   resumeSeq += 1;
@@ -50,6 +62,7 @@ function generateResumeId() {
 export const useProfileStore = create<ProfileStore>((set, get) => ({
   resumes: [],
   dummyProfiles,
+  lastActivityAt: null,
   actions: {
     saveResume: (id, profile) => {
       if (id) {
@@ -69,26 +82,49 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
       return newId;
     },
     deleteResume: (id) => set({ resumes: get().resumes.filter((r) => r.id !== id) }),
-    // publishedAt = "공개한 시각" = "끌올한 시각" (같은 의미, 별도 필드 두지 않는다). 공개 전환마다 갱신.
-    publishResume: (id) =>
+    // publishedAt = "공개한 시각" = "끌올한 시각" (같은 의미, 별도 필드 두지 않는다).
+    // B방식: 쿨다운 중이면 publishedAt을 갱신하지 않아 피드 순서가 바뀌지 않는다.
+    //         쿨다운이 끝났으면 lastActivityAt + publishedAt 모두 갱신해 피드 맨 위로 올린다.
+    publishResume: (id) => {
+      const now = Date.now();
+      const remaining = getRemainingCooldownMs(get().lastActivityAt, now);
+      const onCooldown = remaining > 0;
       set({
+        // 쿨다운이 끝난 첫 공개만 lastActivityAt 갱신 (쿨다운 중 재공개는 갱신 안 함)
+        lastActivityAt: onCooldown ? get().lastActivityAt : now,
         resumes: get().resumes.map((r) => {
-          if (r.id === id) return { ...r, isPublished: true, profile: { ...r.profile, publishedAt: Date.now() } };
+          if (r.id === id) {
+            return {
+              ...r,
+              isPublished: true,
+              profile: {
+                ...r.profile,
+                // 쿨다운 중 재공개: publishedAt 유지 → 피드 순서 변동 없음
+                publishedAt: onCooldown ? r.profile.publishedAt : now,
+              },
+            };
+          }
+          // 다른 공개 이력서는 비공개 처리
           if (r.isPublished) return { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } };
           return r;
         }),
-      }),
+      });
+    },
     unpublishResume: (id) =>
       set({
         resumes: get().resumes.map((r) =>
           r.id === id ? { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } } : r
         ),
       }),
-    bumpResume: (id) =>
+    bumpResume: (id) => {
+      const now = Date.now();
       set({
+        lastActivityAt: now,
         resumes: get().resumes.map((r) =>
-          r.id === id ? { ...r, profile: { ...r.profile, publishedAt: Date.now() } } : r
+          r.id === id ? { ...r, profile: { ...r.profile, publishedAt: now } } : r
         ),
-      }),
+      });
+    },
   },
 }));
+

@@ -5,7 +5,7 @@ import { CareerEntry } from "@/types/profile";
 import { PARTS, PLATFORMS } from "@/lib/constants";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import GenreSelect from "@/components/GenreSelect";
+import MultiSelect from "@/components/ui/MultiSelect";
 import YearPicker from "@/components/ui/YearPicker";
 
 function emptyCareer(): CareerEntry {
@@ -63,7 +63,23 @@ function CareerCard({
         </button>
       </div>
 
-      <Select label="플랫폼" options={PLATFORMS} value={entry.platform} onChange={(platform) => onUpdate({ platform, platformCustom: "" })} allLabel="선택 안 함" />
+      {/* 플랫폼 + 작업파트를 같은 행에 — 두 드롭다운이 나란히 있어 카드 높이를 줄인다 */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select
+          label="플랫폼"
+          options={PLATFORMS}
+          value={entry.platform}
+          onChange={(platform) => onUpdate({ platform, platformCustom: "" })}
+          allLabel="선택 안 함"
+        />
+        <MultiSelect
+          label="작업 파트"
+          options={PARTS}
+          value={entry.parts}
+          onChange={(parts) => onUpdate({ parts })}
+          allLabel="선택 안 함"
+        />
+      </div>
       {entry.platform === "기타" && (
         <Input
           value={entry.platformCustom}
@@ -72,20 +88,19 @@ function CareerCard({
         />
       )}
 
-      {/* 작업 파트와 같은 선택기를 쓴다 — 목록에 없는 파트를 직접 적을 수 있어야 한다. */}
-      <GenreSelect options={PARTS} selected={entry.parts} onChange={(parts) => onUpdate({ parts })} />
-
       <div className="flex items-center gap-2 text-body-sm text-neutral-500">
         <YearPicker
           value={entry.startYear ? { year: entry.startYear, month: entry.startMonth ?? 1 } : null}
           onChange={(v) => onUpdate({ startYear: v.year, startMonth: v.month })}
           placeholder="시작 YYYY.MM"
+          maxDate={entry.endYear ? { year: entry.endYear, month: entry.endMonth ?? 1 } : null}
         />
         <span>~</span>
         <YearPicker
           value={entry.endYear ? { year: entry.endYear, month: entry.endMonth ?? 1 } : null}
           onChange={(v) => onUpdate({ endYear: v.year, endMonth: v.month })}
           placeholder="종료 YYYY.MM"
+          minDate={entry.startYear ? { year: entry.startYear, month: entry.startMonth ?? 1 } : null}
         />
       </div>
 
