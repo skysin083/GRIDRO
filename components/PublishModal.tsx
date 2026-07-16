@@ -18,8 +18,11 @@ export default function PublishModal({ profile, onPublish, onSaveOnly, onEditMor
     <Modal onClose={onEditMore} maxWidthClassName="max-w-sm">
       <h2 className="text-title font-semibold text-neutral-900">카드가 완성됐어요</h2>
 
+      {/* 썸네일을 보여주는 건 유지하되(호평 많았음) 세로로 화면을 꽉 채우던 걸 줄인다 —
+          미리보기 이미지는 정사각(1/1)으로 낮춘다. object-top이라 원고 상단(핵심부)은 그대로 보인다.
+          실제 구직란 카드는 3/4 세로형이라 크롭이 조금 다르지만, 확인용 미리보기엔 충분하다. */}
       <div className="rounded-lg overflow-hidden border border-neutral-200">
-        <div className="w-full aspect-[3/4] bg-neutral-100">
+        <div className="w-full aspect-square bg-neutral-100">
           {profile.images[0] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={profile.images[0]} alt="대표 그림 미리보기" className="w-full h-full object-cover object-top" />

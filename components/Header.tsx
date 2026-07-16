@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User } from "lucide-react";
+import { MessageSquarePlus, User } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
-// Q&A는 배포에서 제외했다. 구인란은 다음 볼륨에서 열 예정이라 자리는 두되 준비 중임을 hover로 알린다.
+// TODO: 실제 의견 수집 통로로 교체할 것 (구글 폼 URL 등). 지금은 임시로 빈 폼 링크.
+const FEEDBACK_URL = "https://forms.gle/REPLACE_ME";
+
+// Q&A는 배포에서 제외했다. 구인란은 다음 볼륨에서 열 예정이라 자리는 두되 클릭 시 준비 중임을 알린다.
 const NAV_TABS = [
-  { label: "구인란", href: null, comingSoon: true },
+  { label: "구인란", href: null },
   { label: "구직란", href: "/feed", match: ["/feed", "/write", "/profile"] },
   // UT: "'내 이력서'로 보이면 내 건 줄 알겠는데 '이력서'라고 되어 있으니 눈에 안 띈다"(멍군).
   // 이 탭을 내 것으로 인식하지 못한 게 공개·비공개 전환을 못 찾은 선행 원인이었다.
@@ -15,6 +19,7 @@ const NAV_TABS = [
 
 export default function Header() {
   const pathname = usePathname();
+  const toast = useToast();
 
   return (
     <header className="print:hidden sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -31,21 +36,17 @@ export default function Header() {
           <nav className="flex items-center gap-9 overflow-x-auto scrollbar-hide min-w-0">
             {NAV_TABS.map((tab) => {
               if (!tab.href) {
+                // 준비 중 탭은 hover 툴팁이 nav의 overflow에 잘리고 모바일엔 hover도 없어,
+                // 클릭 시 토스트로 알린다 — 눌렀는데 아무 반응 없는 것보다 낫다.
                 return (
-                  <span
+                  <button
                     key={tab.label}
-                    aria-disabled
-                    className="group relative shrink-0 text-body-sm text-neutral-400 cursor-not-allowed select-none"
+                    type="button"
+                    onClick={() => toast.show("아직 준비 중인 기능이에요")}
+                    className="shrink-0 text-body-sm text-neutral-400 hover:text-neutral-600 transition-colors"
                   >
                     {tab.label}
-                    {/* 준비 중 탭은 왜 안 눌리는지 hover로 알린다 — 클릭했는데 아무 반응 없는 것보다 낫다. */}
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2.5 py-1.5 text-caption font-medium text-white opacity-0 shadow-md transition-opacity duration-[.15s] group-hover:opacity-100"
-                    >
-                      아직 준비 중인 기능이에요
-                    </span>
-                  </span>
+                  </button>
                 );
               }
               const isActive = tab.match.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -65,7 +66,17 @@ export default function Header() {
         </div>
 
         {/* 검색은 삭제(구직란 필터로 충분). 마이페이지(계정)는 로그인이 붙어야 의미가 있어 그때 활성화한다. */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* 초기 배포라 실제 사용자 의견을 모으는 통로를 눈에 띄게 둔다. */}
+          <a
+            href={FEEDBACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-body-sm font-medium text-neutral-600 border border-neutral-200 rounded-pill pl-2.5 pr-3 py-1.5 transition-colors hover:border-neutral-400 hover:text-neutral-900"
+          >
+            <MessageSquarePlus size={16} />
+            <span className="hidden sm:inline">의견 보내기</span>
+          </a>
           <span
             aria-disabled
             aria-label="마이페이지(준비 중)"
