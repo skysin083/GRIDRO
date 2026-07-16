@@ -14,12 +14,15 @@ interface ProfileStore {
   dummyProfiles: Profile[];
   /** B방식 유저 레벨 쿨다운 — 공개/끌올 모두 이 시각 기준 48h 공유 */
   lastActivityAt: number | null;
+  /** 구직란 카드에서 북마크한 프로필 id 목록. 마이페이지 "북마크한 작가"가 이걸 그대로 읽는다. */
+  bookmarkedIds: string[];
   actions: {
     saveResume: (id: string | null, profile: Profile) => string;
     deleteResume: (id: string) => void;
     publishResume: (id: string) => void;
     unpublishResume: (id: string) => void;
     bumpResume: (id: string) => void;
+    toggleBookmark: (id: string) => void;
   };
 }
 
@@ -63,7 +66,14 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
   resumes: [],
   dummyProfiles,
   lastActivityAt: null,
+  bookmarkedIds: [],
   actions: {
+    toggleBookmark: (id) =>
+      set({
+        bookmarkedIds: get().bookmarkedIds.includes(id)
+          ? get().bookmarkedIds.filter((b) => b !== id)
+          : [...get().bookmarkedIds, id],
+      }),
     saveResume: (id, profile) => {
       if (id) {
         set({

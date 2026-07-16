@@ -65,7 +65,7 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* 검색은 삭제(구직란 필터로 충분). 마이페이지(계정)는 로그인이 붙어야 의미가 있어 그때 활성화한다. */}
+        {/* 검색은 삭제(구직란 필터로 충분). */}
         <div className="flex items-center gap-1.5 shrink-0">
           {/* 초기 배포라 실제 사용자 의견을 모으는 통로를 눈에 띄게 둔다. */}
           <a
@@ -77,13 +77,16 @@ export default function Header() {
             <MessageSquarePlus size={16} />
             <span className="hidden sm:inline">의견 보내기</span>
           </a>
-          <span
-            aria-disabled
-            aria-label="마이페이지(준비 중)"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-300 cursor-not-allowed transition-colors hover:bg-neutral-100"
+          {/* 로그인 전이라 "계정"은 아직 없지만, 지금 가진 것(내 이력서·북마크)은 보여줄 수 있어 페이지를 열어둔다. */}
+          <Link
+            href="/account"
+            aria-label="마이페이지"
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
+              pathname.startsWith("/account") ? "text-neutral-900" : "text-neutral-400"
+            }`}
           >
             <User size={18} />
-          </span>
+          </Link>
         </div>
       </div>
     </header>

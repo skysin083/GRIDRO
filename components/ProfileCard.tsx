@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Bookmark } from "lucide-react";
 import { Profile } from "@/types/profile";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
+import { useProfileStore } from "@/store/useProfileStore";
 import Card from "@/components/ui/Card";
 import Tag from "@/components/ui/Tag";
 
 export default function ProfileCard({ profile }: { profile: Profile }) {
-  const [bookmarked, setBookmarked] = useState(false);
+  // 컴포넌트 로컬 state였던 걸 스토어로 옮겼다 — 새로고침/페이지 이동에도 유지되고,
+  // 마이페이지의 "북마크한 작가" 섹션이 이 값을 그대로 읽는다.
+  const bookmarked = useProfileStore((s) => s.bookmarkedIds.includes(profile.id));
+  const toggleBookmark = useProfileStore((s) => s.actions.toggleBookmark);
   const topParts = profile.parts.slice(0, 2);
   const topGenres = profile.preferredGenres.slice(0, 2);
 
@@ -33,7 +36,7 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              setBookmarked((v) => !v);
+              toggleBookmark(profile.id);
             }}
             aria-label="북마크"
             aria-pressed={bookmarked}
