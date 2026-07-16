@@ -26,8 +26,9 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
             />
           )}
           {/* 흰 원형 배경 대신 상단에 옅은 검정 그라데이션을 깔아 아이콘 대비를 만든다.
-              배경 없이 라인만 두면 밝은 그림 위에서 아이콘이 사라진다(이력서 카드 ⋯가 겪은 문제와 같다). */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent" />
+              배경 없이 라인만 두면 밝은 그림 위에서 아이콘이 사라진다(이력서 카드 ⋯가 겪은 문제와 같다).
+              페이드 구간이 짧으면 그라데이션 끝이 띠처럼 보이므로, 같은 농도를 길게 깔아 경계를 지운다. */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
           <button
             type="button"
             onClick={(e) => {
@@ -36,10 +37,10 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
             }}
             aria-label="북마크"
             aria-pressed={bookmarked}
-            className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center transition-transform duration-[.18s] hover:scale-110"
+            className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center transition-transform duration-[.18s] hover:scale-110"
           >
             <Bookmark
-              size={16}
+              size={20}
               strokeWidth={1.75}
               className={`drop-shadow-[0_1px_2px_rgba(0,0,0,.35)] ${
                 bookmarked ? "fill-white text-white" : "fill-transparent text-white"

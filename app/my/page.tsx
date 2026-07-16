@@ -24,20 +24,21 @@ export default function MyPage() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {/* 고정 비율(aspect)로 이력서 카드 높이를 눈대중 근사하던 탓에 카드와 하단이 93px 어긋났다.
+            비율을 버리고 그리드의 stretch에 높이를 맡기면 카드 내용이 바뀌어도 바닥이 항상 맞는다.
+            min-h는 이력서가 하나도 없어 맞출 카드가 없을 때의 최소 크기다. */}
         {resumes.length < MAX_RESUMES ? (
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => router.push("/write")}
-              className="card-hover w-full flex flex-col items-center justify-center gap-2 aspect-[3/4.4] rounded-lg border border-dashed border-neutral-300 bg-neutral-50 text-neutral-400 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-500"
-            >
-              <Plus size={24} />
-              <span className="text-body-sm font-medium">새 이력서 작성</span>
-            </button>
-            <p className="text-caption text-neutral-400 text-center">3분이면 첫 이력서를 만들 수 있어요</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => router.push("/write")}
+            className="card-hover w-full min-h-[480px] flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 text-neutral-400 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-500"
+          >
+            <Plus size={24} />
+            <span className="text-body-sm font-medium">새 이력서 작성</span>
+            <span className="text-caption text-neutral-400">3분이면 첫 이력서를 만들 수 있어요</span>
+          </button>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 aspect-[3/4.4] rounded-lg bg-neutral-100 text-neutral-400 text-center px-4">
+          <div className="w-full min-h-[480px] flex flex-col items-center justify-center gap-2 rounded-lg bg-neutral-100 text-neutral-400 text-center px-4">
             <Plus size={24} />
             <span className="text-body-sm font-medium">이력서는 {MAX_RESUMES}개까지 만들 수 있어요</span>
           </div>
