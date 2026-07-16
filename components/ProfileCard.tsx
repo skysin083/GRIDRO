@@ -13,6 +13,9 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
   // 마이페이지의 "북마크한 작가" 섹션이 이 값을 그대로 읽는다.
   const bookmarked = useProfileStore((s) => s.bookmarkedIds.includes(profile.id));
   const toggleBookmark = useProfileStore((s) => s.actions.toggleBookmark);
+  // 공개 중인 내 이력서는 구직란에도 카드로 뜬다 — 내가 쓴 글을 내가 북마크하는 건
+  // 의미가 없으니(마이페이지에도 "내 이력서" 섹션이 이미 따로 있다), 버튼 자체를 숨긴다.
+  const isOwn = useProfileStore((s) => s.resumes.some((r) => r.id === profile.id));
   const topParts = profile.parts.slice(0, 2);
   const topGenres = profile.preferredGenres.slice(0, 2);
 
@@ -32,24 +35,26 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
               배경 없이 라인만 두면 밝은 그림 위에서 아이콘이 사라진다(이력서 카드 ⋯가 겪은 문제와 같다).
               페이드 구간이 짧으면 그라데이션 끝이 띠처럼 보이므로, 같은 농도를 길게 깔아 경계를 지운다. */}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              toggleBookmark(profile.id);
-            }}
-            aria-label="북마크"
-            aria-pressed={bookmarked}
-            className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center transition-transform duration-[.18s] hover:scale-110"
-          >
-            <Bookmark
-              size={20}
-              strokeWidth={1.75}
-              className={`drop-shadow-[0_1px_2px_rgba(0,0,0,.35)] ${
-                bookmarked ? "fill-white text-white" : "fill-transparent text-white"
-              }`}
-            />
-          </button>
+          {!isOwn && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleBookmark(profile.id);
+              }}
+              aria-label="북마크"
+              aria-pressed={bookmarked}
+              className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center transition-transform duration-[.18s] hover:scale-110"
+            >
+              <Bookmark
+                size={20}
+                strokeWidth={1.75}
+                className={`drop-shadow-[0_1px_2px_rgba(0,0,0,.35)] ${
+                  bookmarked ? "fill-white text-white" : "fill-transparent text-white"
+                }`}
+              />
+            </button>
+          )}
         </div>
         <div className="p-3 space-y-1.5">
           <p className="text-[17px] font-semibold text-neutral-900 line-clamp-2 leading-snug">{profile.intro}</p>

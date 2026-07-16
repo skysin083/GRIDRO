@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useProfileById } from "@/lib/getProfileById";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
@@ -77,6 +77,8 @@ function ActionButtons({
   id,
   onContact,
   onTogglePublish,
+  bookmarked,
+  onToggleBookmark,
   stackClassName = "",
 }: {
   isOwnResume: boolean;
@@ -84,6 +86,8 @@ function ActionButtons({
   id: string;
   onContact: () => void;
   onTogglePublish: () => void;
+  bookmarked: boolean;
+  onToggleBookmark: () => void;
   stackClassName?: string;
 }) {
   if (isOwnResume) {
@@ -106,10 +110,26 @@ function ActionButtons({
       </div>
     );
   }
+  // 카드(ProfileCard)에는 있던 북마크가 상세에는 없었다 — 컨택하기 옆에 작게 붙여 같은 자리에서 처리하게 한다.
   return (
-    <Button variant="dark-pill" className={`w-full ${stackClassName}`} onClick={onContact}>
-      컨택하기
-    </Button>
+    <div className={`flex items-center gap-2 ${stackClassName}`}>
+      <Button variant="dark-pill" className="flex-1" onClick={onContact}>
+        컨택하기
+      </Button>
+      <button
+        type="button"
+        onClick={onToggleBookmark}
+        aria-label="북마크"
+        aria-pressed={bookmarked}
+        className={`w-11 h-11 shrink-0 rounded-pill border flex items-center justify-center transition-colors ${
+          bookmarked
+            ? "bg-neutral-900 border-neutral-900 text-white"
+            : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400"
+        }`}
+      >
+        <Bookmark size={17} strokeWidth={1.75} className={bookmarked ? "fill-white" : "fill-transparent"} />
+      </button>
+    </div>
   );
 }
 
@@ -149,6 +169,9 @@ function ProfileDetailInner({ id }: { id: string }) {
   const isOwnResume = ownResume !== undefined;
   // 세 군데(방문자용 sticky/본인용 인라인/모바일 하단 바)가 같은 값을 쓴다 — 한 번만 계산해 재사용한다.
   const isPublished = ownResume?.isPublished ?? false;
+  // ProfileCard와 같은 store 키를 써서 구직란·상세 어디서 북마크해도 값이 맞는다.
+  const bookmarked = useProfileStore((s) => s.bookmarkedIds.includes(id));
+  const toggleBookmark = useProfileStore((s) => s.actions.toggleBookmark);
 
   useEffect(() => {
     if (searchParams.get("print") === "1") {
@@ -259,6 +282,8 @@ function ProfileDetailInner({ id }: { id: string }) {
                 id={id}
                 onContact={() => setShowContact(true)}
                 onTogglePublish={() => requestPublish(id)}
+                bookmarked={bookmarked}
+                onToggleBookmark={() => toggleBookmark(id)}
               />
             </div>
           ) : (
@@ -272,6 +297,8 @@ function ProfileDetailInner({ id }: { id: string }) {
                 id={id}
                 onContact={() => setShowContact(true)}
                 onTogglePublish={() => requestPublish(id)}
+                bookmarked={bookmarked}
+                onToggleBookmark={() => toggleBookmark(id)}
               />
             </div>
           )}
@@ -437,6 +464,8 @@ function ProfileDetailInner({ id }: { id: string }) {
           id={id}
           onContact={() => setShowContact(true)}
           onTogglePublish={() => requestPublish(id)}
+          bookmarked={bookmarked}
+          onToggleBookmark={() => toggleBookmark(id)}
         />
       </div>
     </div>
