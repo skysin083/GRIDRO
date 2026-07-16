@@ -350,7 +350,9 @@ function WritePageInner() {
                   <Input
                     value={intro}
                     onChange={(e) => setIntro(e.target.value.slice(0, 40))}
-                    placeholder="예) 배경·채색 파트 구직 중 · 주 3일 가능"
+                    // 방사 구직 글 제목 관례를 그대로 따른다("{파트} 구직합니다").
+                    // '경력 O'는 시스템이 경력란으로 대신 알려주므로 제목엔 넣지 않는다.
+                    placeholder="예) 웹툰 밑색·명암 구직합니다"
                     maxLength={40}
                     className="pr-14"
                   />

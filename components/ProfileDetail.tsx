@@ -12,6 +12,7 @@ import { CareerEntry } from "@/types/profile";
 import Tag from "@/components/ui/Tag";
 import Button from "@/components/ui/Button";
 import ContactModal from "@/components/ContactModal";
+import ImageZoom from "@/components/ImageZoom";
 
 const THUMBS_PER_PAGE = 5;
 const SWIPE_THRESHOLD_RATIO = 0.15;
@@ -123,6 +124,9 @@ function ProfileDetailInner({ id }: { id: string }) {
   const [showContact, setShowContact] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  // 지인 UT: "확대하는 기능은 없을까요… 잡기(팬)·이동 기능이 없어서 보기가 불편하다".
+  // 긴 원고는 상세에서 축소돼 보이므로, 클릭하면 원본 크기로 넘겨보는 라이트박스를 연다.
+  const [zoomOpen, setZoomOpen] = useState(false);
   // AP-1: 메인 이미지는 그림마다 원본 비율대로 높이가 달라져야 한다. 슬라이드 트랙은
   // 모든 이미지를 나란히 한 줄에 두는 구조라 트랙 자체의 높이는 항상 "가장 큰 그림" 기준으로
   // 잡히므로, 바깥 래퍼 높이를 현재 보이는 그림의 실제 비율로 직접 계산해 덮어씌운다.
@@ -130,6 +134,9 @@ function ProfileDetailInner({ id }: { id: string }) {
   const [trackWidth, setTrackWidth] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const dragStartX = useRef(0);
+  // isDragging은 렌더용 state라 pointerdown→up이 한 틱에 붙는 빠른 클릭에서는
+  // endDrag 시점에 아직 반영되지 않는다. 클릭/드래그 판정은 동기 ref로 따로 들고 간다.
+  const draggingRef = useRef(false);
 
   useEffect(() => {
     const updateWidth = () => setTrackWidth(trackRef.current?.offsetWidth || 0);
@@ -168,21 +175,27 @@ function ProfileDetailInner({ id }: { id: string }) {
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (imageCount <= 1) return;
+    // 이미지가 한 장뿐이라 넘길 게 없어도, 클릭으로 확대는 열려야 한다.
     e.currentTarget.setPointerCapture(e.pointerId);
     dragStartX.current = e.clientX;
+    draggingRef.current = true;
     setIsDragging(true);
   };
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
+    if (!draggingRef.current || imageCount <= 1) return;
     setDragOffset(e.clientX - dragStartX.current);
   };
-  const endDrag = () => {
-    if (!isDragging) return;
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    const moved = e.clientX - dragStartX.current;
     const width = trackRef.current?.offsetWidth || 1;
-    const ratio = dragOffset / width;
-    if (Math.abs(ratio) > SWIPE_THRESHOLD_RATIO) {
+    const ratio = moved / width;
+    if (imageCount > 1 && Math.abs(ratio) > SWIPE_THRESHOLD_RATIO) {
       goTo(activeIndex + (ratio < 0 ? 1 : -1));
+    } else if (Math.abs(moved) < 6 && profile.images[activeIndex]) {
+      // 넘기지 않고 거의 제자리에서 뗐으면 = 클릭. 확대해서 본다.
+      setZoomOpen(true);
     }
     setDragOffset(0);
     setIsDragging(false);
@@ -231,9 +244,14 @@ function ProfileDetailInner({ id }: { id: string }) {
 
           {profile.bio && <p className="text-[15px] leading-[1.75] text-neutral-700">{profile.bio}</p>}
 
-          {/* AN-4: 컬럼 전체가 아니라 이 액션 버튼 블록만 sticky — 정보량이 뷰포트보다 길어져도
-              아래 정보 항목이 sticky 블록에 가려 못 보이는 문제(스크롤 충돌)를 피한다. */}
-          <div className="hidden md:block md:sticky md:top-[88px] print:hidden">
+          {/* AN-4: 컨택 버튼은 스크롤 중에도 보이도록 sticky를 유지한다. 다만 배경이 없으면
+              아래 정보 항목이 버튼 뒤로 그대로 비쳐 오류처럼 보였다 —
+              버튼 뒤에 흰 배경을 깔되 위·아래 가장자리를 투명으로 흘려, 지나가는 내용이
+              딱 잘리지 않고 흰색으로 자연스럽게 페이드되게 한다. */}
+          <div
+            className="hidden md:block md:sticky md:top-[76px] z-10 print:hidden py-4"
+            style={{ background: "linear-gradient(180deg, transparent 0%, #fff 16%, #fff 84%, transparent 100%)" }}
+          >
             <ActionButtons
               isOwnResume={isOwnResume}
               isPublished={ownResume?.isPublished ?? false}
@@ -328,7 +346,7 @@ function ProfileDetailInner({ id }: { id: string }) {
               여백이 없으므로 배경색도 더 이상 필요 없다. */}
           <div
             ref={trackRef}
-            className="relative w-full rounded-lg overflow-hidden select-none"
+            className="relative w-full rounded-lg overflow-hidden select-none cursor-zoom-in"
             style={{ height: trackHeight, touchAction: "pan-y", transition: isDragging ? "none" : "height .25s cubic-bezier(.22,.61,.36,1)" }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -381,6 +399,14 @@ function ProfileDetailInner({ id }: { id: string }) {
 
       {showContact && <ContactModal email={profile.email} onClose={() => setShowContact(false)} />}
       {confirmModal}
+
+      {zoomOpen && profile.images[activeIndex] && (
+        <ImageZoom
+          src={profile.images[activeIndex]}
+          alt={`${profile.nickname} 대표작 ${activeIndex + 1}`}
+          onClose={() => setZoomOpen(false)}
+        />
+      )}
 
       {/* AO-1: 하단 고정 탭바(AM-1)가 사라져 이 버튼 바가 모바일의 유일한 화면 하단 고정
           요소가 됐다 — 세이프에어리어 패딩도 이제 여기서 처리한다. */}
