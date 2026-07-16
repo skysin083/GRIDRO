@@ -15,6 +15,7 @@ import {
   PART_UPLOAD_TIPS,
   CSP_EDITION_TOOL,
   CSP_EDITIONS,
+  CSP_VERSIONS,
 } from "@/lib/constants";
 import UploadSlot from "@/components/UploadSlot";
 import TagSelect from "@/components/TagSelect";
@@ -138,6 +139,9 @@ function WritePageInner() {
   const [cspEdition, setCspEdition] = useState<(typeof CSP_EDITIONS)[number] | "">(
     (initialProfile?.cspEdition as (typeof CSP_EDITIONS)[number]) ?? ""
   );
+  const [cspVersion, setCspVersion] = useState<(typeof CSP_VERSIONS)[number] | "">(
+    (initialProfile?.cspVersion as (typeof CSP_VERSIONS)[number]) ?? ""
+  );
   const [workStyle, setWorkStyle] = useState<WorkStyle | "">(initialProfile?.workStyle ?? "");
   const [authorTraits, setAuthorTraits] = useState<string[]>(initialProfile?.authorTraits ?? []);
   const [authorTraitsNote, setAuthorTraitsNote] = useState(initialProfile?.authorTraitsNote ?? "");
@@ -164,6 +168,8 @@ function WritePageInner() {
       tools: toolNames,
       // 클튜를 빼면 에디션 값도 남기지 않는다 — 안 쓰는 툴의 에디션이 카드에 남으면 안 된다.
       cspEdition: toolNames.includes(CSP_EDITION_TOOL) ? cspEdition : "",
+      // 버전은 에디션을 고른 뒤에만 의미가 있다 — 에디션이 없어지면 버전도 같이 비운다.
+      cspVersion: toolNames.includes(CSP_EDITION_TOOL) && cspEdition ? cspVersion : "",
       workStyle: (workStyle || "무관") as WorkStyle,
       authorTraits,
       authorTraitsNote,
@@ -187,6 +193,7 @@ function WritePageInner() {
       dislikedGenres,
       toolNames,
       cspEdition,
+      cspVersion,
       workStyle,
       authorTraits,
       authorTraitsNote,
@@ -431,14 +438,24 @@ function WritePageInner() {
               <Field label="사용 툴" required id="field-tools">
                 <GenreSelect options={TOOLS} selected={toolNames} onChange={setToolNames} />
                 {/* UT: "사람들 EX인지 PRO인지도 쓰더라"(재갈). 클튜만 에디션에 따라 되는 작업이 갈려서
-                    (EX만 웹툰 다중 페이지 내보내기) 고른 사람에게만 한 단계 더 묻는다. */}
+                    (EX만 웹툰 다중 페이지 내보내기) 고른 사람에게만 한 단계 더 묻는다.
+                    DEBUT은 상업 작업에서 쓰는 사람이 사실상 없어 뺐다.
+                    버전은 에디션·버전 칩을 한 줄에 이어 붙여, 에디션을 고르면 그 옆에 바로 이어서 고르게 한다. */}
                 {toolNames.includes(CSP_EDITION_TOOL) && (
                   <div className="mt-3 rounded-md bg-neutral-50 border border-neutral-200 px-3.5 py-3 space-y-2">
                     <p className="text-[13px] font-semibold text-neutral-700">
-                      Clip Studio Paint 에디션
+                      Clip Studio Paint 에디션·버전
                       <span className="ml-1.5 font-normal text-neutral-400">선택</span>
                     </p>
-                    <SingleSelectChips options={CSP_EDITIONS} value={cspEdition} onChange={setCspEdition} />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SingleSelectChips options={CSP_EDITIONS} value={cspEdition} onChange={setCspEdition} />
+                      {cspEdition && (
+                        <>
+                          <span className="text-neutral-300 select-none">/</span>
+                          <SingleSelectChips options={CSP_VERSIONS} value={cspVersion} onChange={setCspVersion} />
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </Field>

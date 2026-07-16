@@ -12,7 +12,7 @@ const ago = (ms: number) => now - ms;
 
 type RawDummyProfile = Omit<
   Profile,
-  "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote" | "cspEdition"
+  "bio" | "isNewcomer" | "careers" | "authorTraitsNote" | "contactNote" | "cspEdition" | "cspVersion"
 >;
 
 const rawDummyProfiles: RawDummyProfile[] = [
@@ -170,6 +170,7 @@ export const dummyProfiles: Profile[] = rawDummyProfiles.map((p) => ({
   careers: [],
   authorTraitsNote: "",
   contactNote: "",
-  // 클튜를 쓰는 더미에만 에디션을 채워 상세에서 "Clip Studio Paint EX"처럼 보이는 걸 확인한다.
+  // 클튜를 쓰는 더미에만 에디션·버전을 채워 상세에서 "Clip Studio Paint EX Ver.5"처럼 보이는 걸 확인한다.
   cspEdition: p.tools.includes("Clip Studio Paint") ? "EX" : "",
+  cspVersion: p.tools.includes("Clip Studio Paint") ? "5" : "",
 }));

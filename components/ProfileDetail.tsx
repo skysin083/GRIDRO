@@ -313,12 +313,14 @@ function ProfileDetailInner({ id }: { id: string }) {
             <InfoRow label="작업물 성향" value={profile.workStyle} />
             <InfoRow
               label="사용 툴"
-              // 클튜는 에디션까지 붙여 보여준다 — 에디션에 따라 되는 작업이 갈리는 걸 구인자가 본다.
+              // 클튜는 에디션·버전까지 붙여 보여준다 — 어느 쪽이든 되는 작업이 갈리는 걸 구인자가 본다.
               value={
                 profile.tools
-                  .map((t) =>
-                    t === CSP_EDITION_TOOL && profile.cspEdition ? `${t} ${profile.cspEdition}` : t
-                  )
+                  .map((t) => {
+                    if (t !== CSP_EDITION_TOOL || !profile.cspEdition) return t;
+                    const version = profile.cspVersion ? ` Ver.${profile.cspVersion}` : "";
+                    return `${t} ${profile.cspEdition}${version}`;
+                  })
                   .join(", ") || "-"
               }
             />

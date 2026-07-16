@@ -23,8 +23,10 @@ export interface Profile {
   preferredGenres: string[];
   dislikedGenres: string[];
   tools: string[];
-  /** Clip Studio Paint를 고른 경우의 에디션(EX/PRO/DEBUT). 에디션마다 되는 작업이 달라 구인자가 확인한다. */
+  /** Clip Studio Paint를 고른 경우의 에디션(EX/PRO). 에디션마다 되는 작업이 달라 구인자가 확인한다. */
   cspEdition: string;
+  /** 에디션을 고른 뒤에만 의미가 있는 메이저 버전(예: "5"). 에디션이 비면 같이 비운다. */
+  cspVersion: string;
   workStyle: WorkStyle;
   authorTraits: string[];
   authorTraitsNote: string;

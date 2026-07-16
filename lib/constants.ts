@@ -45,8 +45,12 @@ export const TOOLS = [
 
 // UT: "사람들 EX인지 PRO인지도 쓰더라"(재갈). 클튜는 에디션에 따라 실무 기능이 갈려서
 // (EX만 웹툰 다중 페이지 내보내기 지원) 구인자가 실제로 확인하는 정보다.
+// DEBUT은 상업 작업에서 쓰는 사람이 사실상 없어 뺐다.
 export const CSP_EDITION_TOOL = "Clip Studio Paint";
-export const CSP_EDITIONS = ["EX", "PRO", "DEBUT"] as const;
+export const CSP_EDITIONS = ["EX", "PRO"] as const;
+// 메이저 버전만 남긴다(2.0=2023, 3.0=2024 … 현재 5.0대) — 패치 버전(5.0.4 등)까지는
+// 이력서에서 의미가 없고, 필터·소재 호환은 보통 메이저 버전 단위로 갈린다.
+export const CSP_VERSIONS = ["5", "4", "3", "2", "1"] as const;
 
 export const WORK_STYLES = ["남성향", "여성향", "무관"] as const;
 
