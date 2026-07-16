@@ -147,6 +147,8 @@ function ProfileDetailInner({ id }: { id: string }) {
 
   const ownResume = resumes.find((r) => r.id === id);
   const isOwnResume = ownResume !== undefined;
+  // 세 군데(방문자용 sticky/본인용 인라인/모바일 하단 바)가 같은 값을 쓴다 — 한 번만 계산해 재사용한다.
+  const isPublished = ownResume?.isPublished ?? false;
 
   useEffect(() => {
     if (searchParams.get("print") === "1") {
@@ -244,22 +246,35 @@ function ProfileDetailInner({ id }: { id: string }) {
 
           {profile.bio && <p className="text-[15px] leading-[1.75] text-neutral-700">{profile.bio}</p>}
 
-          {/* AN-4: 컨택 버튼은 스크롤 중에도 보이도록 sticky를 유지한다. 다만 배경이 없으면
-              아래 정보 항목이 버튼 뒤로 그대로 비쳐 오류처럼 보였다 —
-              버튼 뒤에 흰 배경을 깔되 위·아래 가장자리를 투명으로 흘려, 지나가는 내용이
-              딱 잘리지 않고 흰색으로 자연스럽게 페이드되게 한다. */}
-          <div
-            className="hidden md:block md:sticky md:top-[76px] z-10 print:hidden py-4"
-            style={{ background: "linear-gradient(180deg, transparent 0%, #fff 16%, #fff 84%, transparent 100%)" }}
-          >
-            <ActionButtons
-              isOwnResume={isOwnResume}
-              isPublished={ownResume?.isPublished ?? false}
-              id={id}
-              onContact={() => setShowContact(true)}
-              onTogglePublish={() => requestPublish(id)}
-            />
-          </div>
+          {/* AN-4: sticky+그라데이션은 '컨택하기'(방문자용) 한 케이스에만 의미가 있다 —
+              스크롤하며 훑다가 어디서든 바로 컨택할 수 있게. 본인 이력서에서는
+              수정·공개전환·PDF저장을 훑으며 바로 눌러야 할 이유가 없어 그냥 인라인으로 둔다.
+              top은 헤더 높이(h-16=64px)와 정확히 맞춘다 — 어긋나면 그 틈으로 아래 내용이
+              그라데이션 없이 비쳐 헤더와 버튼 사이가 뚫린 것처럼 보인다. */}
+          {isOwnResume ? (
+            <div className="hidden md:block print:hidden">
+              <ActionButtons
+                isOwnResume={isOwnResume}
+                isPublished={isPublished}
+                id={id}
+                onContact={() => setShowContact(true)}
+                onTogglePublish={() => requestPublish(id)}
+              />
+            </div>
+          ) : (
+            <div
+              className="hidden md:block md:sticky md:top-16 z-10 print:hidden py-4"
+              style={{ background: "linear-gradient(180deg, transparent 0%, #fff 16%, #fff 84%, transparent 100%)" }}
+            >
+              <ActionButtons
+                isOwnResume={isOwnResume}
+                isPublished={isPublished}
+                id={id}
+                onContact={() => setShowContact(true)}
+                onTogglePublish={() => requestPublish(id)}
+              />
+            </div>
+          )}
 
           <div className="border-t border-neutral-200 pt-5 space-y-5">
             <InfoRow label="작업 파트" value={profile.parts.join(", ") || "-"} />
@@ -418,7 +433,7 @@ function ProfileDetailInner({ id }: { id: string }) {
       >
         <ActionButtons
           isOwnResume={isOwnResume}
-          isPublished={ownResume?.isPublished ?? false}
+          isPublished={isPublished}
           id={id}
           onContact={() => setShowContact(true)}
           onTogglePublish={() => requestPublish(id)}
