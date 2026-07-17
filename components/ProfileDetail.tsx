@@ -27,6 +27,20 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function GenrePreferenceRow({ preferred, disliked }: { preferred: string[]; disliked: string[] }) {
+  return (
+    <div>
+      <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">선호·불호 장르</p>
+      <p className="text-[15px] leading-[1.6]">
+        <span className="text-neutral-500 font-normal">선호: </span>
+        <span className="text-neutral-800 font-medium">{preferred.join(", ") || "-"}</span>
+        <span className="text-neutral-500 font-normal"> · 불호: </span>
+        <span className="text-neutral-600 font-medium">{disliked.join(", ") || "-"}</span>
+      </p>
+    </div>
+  );
+}
+
 function formatPeriod(entry: CareerEntry) {
   const start = entry.startYear ? `${entry.startYear}.${String(entry.startMonth ?? 1).padStart(2, "0")}` : "";
   const end = entry.endYear ? `${entry.endYear}.${String(entry.endMonth ?? 1).padStart(2, "0")}` : "";
@@ -123,11 +137,11 @@ function ActionButtons({
         aria-pressed={bookmarked}
         className={`w-11 h-11 shrink-0 rounded-pill border flex items-center justify-center transition-colors ${
           bookmarked
-            ? "bg-neutral-900 border-neutral-900 text-white"
+            ? "bg-white border-primary-500 text-primary-600"
             : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400"
         }`}
       >
-        <Bookmark size={17} strokeWidth={1.75} className={bookmarked ? "fill-white" : "fill-transparent"} />
+        <Bookmark size={17} strokeWidth={1.75} className={bookmarked ? "fill-primary-500" : "fill-transparent"} />
       </button>
     </div>
   );
@@ -306,10 +320,7 @@ function ProfileDetailInner({ id }: { id: string }) {
           <div className="border-t border-neutral-200 pt-5 space-y-5">
             <InfoRow label="작업 파트" value={profile.parts.join(", ") || "-"} />
             {!profile.isNewcomer && <CareerInfoRow careers={profile.careers} />}
-            <InfoRow
-              label="선호·불호 장르"
-              value={`${profile.preferredGenres.join(", ") || "-"} / 불호: ${profile.dislikedGenres.join(", ") || "-"}`}
-            />
+            <GenrePreferenceRow preferred={profile.preferredGenres} disliked={profile.dislikedGenres} />
             <InfoRow label="작업물 성향" value={profile.workStyle} />
             <InfoRow
               label="사용 툴"
