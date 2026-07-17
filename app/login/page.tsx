@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
+import { saveAuthNext } from "@/lib/authRedirect";
 import Button from "@/components/ui/Button";
 
 function GoogleIcon() {
@@ -30,10 +31,13 @@ function LoginPageInner() {
   }, [loading, user, next, router]);
 
   const handleGoogleLogin = () => {
+    // next는 sessionStorage로 넘긴다 — redirectTo에 쿼리스트링으로 실어 보내면 Supabase가
+    // 자체 code 파라미터를 붙이는 과정에서 뒤섞여 콜백 후 404로 이어졌다.
+    saveAuthNext(next);
     supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   };
