@@ -486,7 +486,6 @@ function WritePageInner() {
                 <Field
                   label="경력 사항"
                   id="field-careers"
-                  caption="참여한 작품을 적으면 믿고 맡기기 쉬워요"
                   headerAction={
                     <label className="flex items-center gap-1.5 text-body-sm text-neutral-500 cursor-pointer select-none shrink-0">
                       <input
@@ -514,14 +513,14 @@ function WritePageInner() {
                 />
               </Field>
 
-              {/* placeholder 예시가 "몇 컷에 몇 시간"처럼 구체적인 작성법을 유도한다.
-                  caption으로 작성 동기를 살려두면 입력 전부터 방향이 잡힌다. */}
-              <Field label="작가 특징" id="field-authorTraits" caption="구체적으로 쓸수록 구인자 눈에 띄어요">
+              {/* 작성 동기("구체적으로 쓸수록...")를 caption 대신 입력칸 placeholder 안에 녹여
+                  입력 전 방향을 잡아준다 — 예시는 하나만, 다른 항목과 캡션 유무 표기 일관성을 맞춘다. */}
+              <Field label="작가 특징" id="field-authorTraits">
                 <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
                 <Input
                   value={authorTraitsNote}
                   onChange={(e) => setAuthorTraitsNote(e.target.value)}
-                  placeholder="예) 3컷에 1시간 정도 걸려요 · 주시면 바로 작업 가능해요"
+                  placeholder="구체적으로 쓸수록 구인자 눈에 띄어요. 예: 수정 대응 빠름"
                   className="mt-3"
                 />
               </Field>

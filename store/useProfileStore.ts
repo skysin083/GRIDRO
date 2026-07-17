@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { Profile } from "@/types/profile";
-import { dummyProfiles } from "@/data/dummyProfiles";
 import { useAuthStore } from "@/store/useAuthStore";
 import { deleteResumeRow, fetchMyResumes, uploadResumeImages, upsertResumeRow } from "@/lib/resumesApi";
 
@@ -13,7 +12,6 @@ export interface Resume {
 
 interface ProfileStore {
   resumes: Resume[];
-  dummyProfiles: Profile[];
   /** B방식 유저 레벨 쿨다운 — 공개/끌올 모두 이 시각 기준 48h 공유 */
   lastActivityAt: number | null;
   /** 구직란 카드에서 북마크한 프로필 id 목록. 마이페이지 "북마크한 작가"가 이걸 그대로 읽는다. */
@@ -85,7 +83,6 @@ function syncResumesToRemote(resumes: Resume[]): Promise<void> {
 
 export const useProfileStore = create<ProfileStore>((set, get) => ({
   resumes: [],
-  dummyProfiles,
   lastActivityAt: null,
   bookmarkedIds: [],
   actions: {

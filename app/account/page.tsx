@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut, Mail } from "lucide-react";
+import { Bookmark, LogOut, Mail } from "lucide-react";
 import { useProfileStore } from "@/store/useProfileStore";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchProfilesByIds } from "@/lib/resumesApi";
+import { Profile } from "@/types/profile";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -18,9 +20,25 @@ const BOOKMARK_PREVIEW_COUNT = 8;
 export default function AccountPage() {
   const { user, loading } = useRequireAuth();
   const resumes = useProfileStore((s) => s.resumes);
-  const dummyProfiles = useProfileStore((s) => s.dummyProfiles);
   const bookmarkedIds = useProfileStore((s) => s.bookmarkedIds);
+  const toggleBookmark = useProfileStore((s) => s.actions.toggleBookmark);
   const [showAllBookmarks, setShowAllBookmarks] = useState(false);
+  const [bookmarkedProfilesById, setBookmarkedProfilesById] = useState<Record<string, Profile>>({});
+
+  const ownResumeIds = new Set(resumes.map((r) => r.id));
+  // 내 이력서를 북마크했던 과거 상태가 남아 있을 수 있어 여기서도 한 번 더 걸러낸다
+  // (ProfileCard는 이제 본인 카드에 북마크 버튼 자체를 안 보여준다).
+  const otherBookmarkedIds = bookmarkedIds.filter((id) => !ownResumeIds.has(id));
+
+  useEffect(() => {
+    // otherBookmarkedIds가 비어 있으면 아래 bookmarkedProfiles 계산에서 어차피 빈 배열로 걸러지므로
+    // 여기서 상태를 초기화할 필요가 없다 — fetch 자체를 건너뛴다.
+    if (otherBookmarkedIds.length === 0) return;
+    fetchProfilesByIds(otherBookmarkedIds)
+      .then((profiles) => setBookmarkedProfilesById(Object.fromEntries(profiles.map((p) => [p.id, p]))))
+      .catch((e) => console.error("북마크 조회 실패", e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherBookmarkedIds.join(",")]);
 
   // 로딩 중이거나 곧 /login으로 리다이렉트될 상태면 아무것도 그리지 않는다.
   if (loading || !user) return null;
@@ -29,15 +47,11 @@ export default function AccountPage() {
   const published = resumes.find((r) => r.isPublished);
   const primary = published ?? [...resumes].sort((a, b) => b.createdAt - a.createdAt)[0];
 
-  const ownResumeIds = new Set(resumes.map((r) => r.id));
-  const bookmarkedProfiles = bookmarkedIds
-    // 내 이력서를 북마크했던 과거 상태가 남아 있을 수 있어 여기서도 한 번 더 걸러낸다
-    // (ProfileCard는 이제 본인 카드에 북마크 버튼 자체를 안 보여준다).
-    .filter((id) => !ownResumeIds.has(id))
+  const bookmarkedProfiles = otherBookmarkedIds
     .slice()
     .reverse() // 최근에 북마크한 순서로
-    .map((id) => dummyProfiles.find((p) => p.id === id))
-    .filter((p): p is NonNullable<typeof p> => p !== undefined);
+    .map((id) => bookmarkedProfilesById[id])
+    .filter((p): p is Profile => p !== undefined);
 
   const visibleBookmarks = showAllBookmarks
     ? bookmarkedProfiles
@@ -104,7 +118,7 @@ export default function AccountPage() {
                   href={`/profile/${profile.id}`}
                   className="group space-y-1.5"
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 transition-colors group-hover:border-neutral-300">
+                  <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 transition-colors group-hover:border-neutral-300">
                     {profile.images[0] && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -113,6 +127,23 @@ export default function AccountPage() {
                         className="w-full h-full object-cover object-top"
                       />
                     )}
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+                    {/* 목록이 곧 북마크한 작가라 항상 채워진 상태로 보여주고, 눌러서 즉시 해제한다(확인 모달 없음). */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleBookmark(profile.id);
+                      }}
+                      aria-label="북마크 해제"
+                      className="absolute top-1 right-1 w-7 h-7 flex items-center justify-center transition-transform duration-[.18s] hover:scale-110"
+                    >
+                      <Bookmark
+                        size={16}
+                        strokeWidth={1.75}
+                        className="fill-white text-white drop-shadow-[0_1px_2px_rgba(0,0,0,.35)]"
+                      />
+                    </button>
                   </div>
                   <p className="text-caption font-medium text-neutral-600 truncate">{profile.nickname}</p>
                 </Link>

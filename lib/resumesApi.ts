@@ -75,3 +75,11 @@ export async function fetchProfileById(id: string): Promise<Profile | null> {
   if (error || !data) return null;
   return (data as { data: Profile }).data;
 }
+
+/** 마이페이지 "북마크한 작가"용 — 여러 id를 한 번에 조회. 비공개로 바뀐 건 RLS에 걸려 결과에서 빠진다. */
+export async function fetchProfilesByIds(ids: string[]): Promise<Profile[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from("resumes").select("data").in("id", ids);
+  if (error) throw error;
+  return (data as { data: Profile }[]).map((row) => row.data);
+}

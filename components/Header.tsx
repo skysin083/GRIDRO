@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, MessageSquarePlus, User } from "lucide-react";
+import { MessageSquarePlus, User } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
-import { useAuthStore } from "@/store/useAuthStore";
-import { supabase } from "@/lib/supabaseClient";
 
 // TODO: 실제 의견 수집 통로로 교체할 것 (구글 폼 URL 등). 지금은 임시로 빈 폼 링크.
 const FEEDBACK_URL = "https://forms.gle/REPLACE_ME";
@@ -20,64 +17,9 @@ const NAV_TABS = [
   { label: "내 이력서", href: "/my", match: ["/my"] },
 ] as const;
 
-// 로그인 상태면 사람 아이콘이 프로필/로그아웃 드롭다운으로 바뀐다. 비로그인이면 /account 링크 그대로 —
-// 로그인 가드는 /account 페이지 쪽(useRequireAuth)에서 처리해 로그인 안 된 상태의 클릭도 /login으로 보낸다.
-function AccountMenu({ isActive }: { isActive: boolean }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={menuRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="마이페이지"
-        aria-expanded={open}
-        className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
-          isActive ? "text-neutral-900" : "text-neutral-400"
-        }`}
-      >
-        <User size={18} />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-11 w-44 rounded-md border border-neutral-200 bg-white shadow-sm py-1.5 z-40">
-          <Link
-            href="/account"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-body-sm text-neutral-700 hover:bg-neutral-50"
-          >
-            마이페이지
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              supabase.auth.signOut();
-            }}
-            className="flex items-center gap-1.5 w-full px-4 py-2 text-body-sm text-neutral-700 hover:bg-neutral-50"
-          >
-            <LogOut size={14} />
-            로그아웃
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function Header() {
   const pathname = usePathname();
   const toast = useToast();
-  const user = useAuthStore((s) => s.user);
 
   return (
     <header className="print:hidden sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -135,19 +77,16 @@ export default function Header() {
             <MessageSquarePlus size={16} />
             <span className="hidden sm:inline">의견 보내기</span>
           </a>
-          {user ? (
-            <AccountMenu isActive={pathname.startsWith("/account")} />
-          ) : (
-            <Link
-              href="/account"
-              aria-label="마이페이지"
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
-                pathname.startsWith("/account") ? "text-neutral-900" : "text-neutral-400"
-              }`}
-            >
-              <User size={18} />
-            </Link>
-          )}
+          {/* 로그인 상태면 바로 마이페이지로, 비로그인이면 /account의 가드가 /login으로 보낸다. */}
+          <Link
+            href="/account"
+            aria-label="마이페이지"
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
+              pathname.startsWith("/account") ? "text-neutral-900" : "text-neutral-400"
+            }`}
+          >
+            <User size={18} />
+          </Link>
         </div>
       </div>
     </header>
