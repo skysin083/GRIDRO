@@ -1,10 +1,13 @@
 -- resumes 테이블 + storage 버킷. Supabase 대시보드 SQL Editor에서 실행할 것.
+-- 컬럼명은 실제 운영 테이블 기준(data, published_at)으로 맞춰뒀다 — lib/resumesApi.ts와 일치시킬 것.
 
 create table public.resumes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  profile jsonb not null,
+  data jsonb not null,
   is_published boolean not null default false,
+  -- data(jsonb) 안 publishedAt과 같은 값을 중복 보관 — 정렬/필터를 컬럼으로 바로 할 수 있게.
+  published_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
