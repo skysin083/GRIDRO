@@ -148,7 +148,7 @@ function ActionButtons({
 }
 
 function ProfileDetailInner({ id }: { id: string }) {
-  const profile = useProfileById(id);
+  const { profile, loading: profileLoading } = useProfileById(id);
   const resumes = useProfileStore((s) => s.resumes);
   // AK-2: 공개 규칙은 '내 이력서'와 같은 훅에서 온다 — 두 진입점의 동작이 갈라지지 않게.
   const { requestPublish, confirmModal } = usePublishRequest();
@@ -193,6 +193,12 @@ function ProfileDetailInner({ id }: { id: string }) {
       return () => clearTimeout(timer);
     }
   }, [searchParams]);
+
+  // 원격 조회 중엔 "찾을 수 없음"을 먼저 보여주지 않는다 — 공유 링크로 들어온 방문자에게
+  // 잠깐이라도 오탐 메시지가 깜빡이는 걸 막는다.
+  if (profileLoading) {
+    return <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-20" />;
+  }
 
   if (!profile) {
     return (

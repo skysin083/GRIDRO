@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import { ToastProvider } from "@/components/ui/Toast";
+import AuthListener from "@/components/AuthListener";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-neutral-0">
         <ToastProvider>
+          <AuthListener />
           <Header />
           <main className="flex-1">{children}</main>
         </ToastProvider>

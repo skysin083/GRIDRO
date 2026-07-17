@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { LogOut, Mail } from "lucide-react";
 import { useProfileStore } from "@/store/useProfileStore";
+import { useRequireAuth } from "@/lib/useRequireAuth";
+import { supabase } from "@/lib/supabaseClient";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -13,17 +15,15 @@ import EmptyState from "@/components/ui/EmptyState";
 // 2행(4열 기준) 분량만 기본으로 보여준다 — 북마크가 많아지면 페이지가 끝없이 길어지는 걸 막는다.
 const BOOKMARK_PREVIEW_COUNT = 8;
 
-/**
- * 마이페이지. 아직 로그인(Supabase Auth)이 안 붙어 있어 "계정"이라 부를 실체가 없다 —
- * 그래서 이 페이지는 지금 가진 것(작성한 이력서, 북마크)만 정직하게 보여주고,
- * 로그인이 있어야만 의미가 생기는 항목(이메일 계정, 로그아웃)은 비활성 상태로 자리만 잡아둔다.
- * 로그인 연동 후에는 "대표 이력서 기준" 표시를 실제 계정 정보로 바꾸기만 하면 된다.
- */
 export default function AccountPage() {
+  const { user, loading } = useRequireAuth();
   const resumes = useProfileStore((s) => s.resumes);
   const dummyProfiles = useProfileStore((s) => s.dummyProfiles);
   const bookmarkedIds = useProfileStore((s) => s.bookmarkedIds);
   const [showAllBookmarks, setShowAllBookmarks] = useState(false);
+
+  // 로딩 중이거나 곧 /login으로 리다이렉트될 상태면 아무것도 그리지 않는다.
+  if (loading || !user) return null;
 
   // 대표로 보여줄 이력서: 공개 중인 게 있으면 그걸, 없으면 가장 최근에 만든 것.
   const published = resumes.find((r) => r.isPublished);
@@ -135,21 +135,17 @@ export default function AccountPage() {
         )}
       </div>
 
-      {/* 계정 — 로그인 연동 전이라 실제 계정 이메일이 아니라 대표 이력서 이메일을 대신 보여준다 */}
+      {/* 계정 */}
       <Card hover="none" className="p-6 space-y-4">
         <p className="text-body-sm font-bold text-neutral-900">계정</p>
         <div className="flex items-center gap-2 text-body-sm text-neutral-600">
           <Mail size={16} className="text-neutral-400 shrink-0" />
-          <span className="truncate">{primary?.profile.email || "등록된 이메일이 없어요"}</span>
+          <span className="truncate">{user.email}</span>
         </div>
-        <p className="text-caption text-neutral-400">
-          로그인 연동 전이라 이력서에 적은 이메일을 대신 보여드려요.
-        </p>
-        <Button variant="outline" size="sm" disabled className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => supabase.auth.signOut()}>
           <LogOut size={14} />
           로그아웃
         </Button>
-        <p className="text-caption text-neutral-400">로그인 연동 후 사용할 수 있어요</p>
       </Card>
     </div>
   );

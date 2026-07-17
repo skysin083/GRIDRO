@@ -4,17 +4,21 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useProfileStore, MAX_RESUMES } from "@/store/useProfileStore";
 import { usePublishRequest } from "@/lib/usePublishRequest";
+import { useRequireAuth } from "@/lib/useRequireAuth";
 import { useToast } from "@/components/ui/Toast";
 import ResumeCard from "@/components/ResumeCard";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function MyPage() {
   const router = useRouter();
+  const { user, loading } = useRequireAuth();
   const resumes = useProfileStore((s) => s.resumes);
   const { deleteResume, bumpResume } = useProfileStore((s) => s.actions);
   // AK-2: 공개 규칙·확인 모달·토스트는 훅 하나에서 온다 (이력서 상세와 동일한 동작).
   const { requestPublish, confirmModal } = usePublishRequest();
   const toast = useToast();
+
+  if (loading || !user) return null;
 
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 space-y-10">

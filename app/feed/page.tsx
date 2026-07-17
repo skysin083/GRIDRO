@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
+import { fetchPublishedProfiles } from "@/lib/resumesApi";
+import { Profile } from "@/types/profile";
 import ProfileCard from "@/components/ProfileCard";
 import FilterBar, { EMPTY_FEED_FILTERS, FeedFilters, matchesAllActiveFilters } from "@/components/FilterBar";
 import Button from "@/components/ui/Button";
@@ -12,16 +14,19 @@ export default function FeedPage() {
   const dummyProfiles = useProfileStore((s) => s.dummyProfiles);
 
   const [filters, setFilters] = useState<FeedFilters>(EMPTY_FEED_FILTERS);
+  // 전체 유저 대상 공개 이력서 — 로그인 여부와 무관하게 누구나 구직란을 볼 수 있어야 한다.
+  const [publishedProfiles, setPublishedProfiles] = useState<Profile[]>([]);
 
-  const published = resumes.find((r) => r.isPublished);
+  useEffect(() => {
+    fetchPublishedProfiles()
+      .then(setPublishedProfiles)
+      .catch((e) => console.error("공개 이력서 조회 실패", e));
+  }, []);
 
   // publishedAt 최신순(내림차순). 끌올하면 publishedAt이 갱신되어 자동으로 맨 위로 올라온다.
   const feed = useMemo(
-    () =>
-      [...(published ? [published.profile] : []), ...dummyProfiles].sort(
-        (a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0)
-      ),
-    [published, dummyProfiles]
+    () => [...publishedProfiles, ...dummyProfiles].sort((a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0)),
+    [publishedProfiles, dummyProfiles]
   );
 
   const filtered = feed.filter((p) => matchesAllActiveFilters(p, filters));

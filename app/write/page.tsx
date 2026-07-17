@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useProfileStore, MAX_RESUMES } from "@/store/useProfileStore";
+import { useRequireAuth } from "@/lib/useRequireAuth";
 import { CareerEntry, Profile, WorkStyle } from "@/types/profile";
 import {
   PARTS,
@@ -118,9 +119,10 @@ function WritePageInner() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const editId = searchParams.get("id");
+  const { user, loading: authLoading } = useRequireAuth();
 
   const resumes = useProfileStore((s) => s.resumes);
-  const { saveResume, publishResume } = useProfileStore((s) => s.actions);
+  const { saveResume, persistResume, publishResume } = useProfileStore((s) => s.actions);
 
   // D-7: 수정 모드 진입 시 기존 이력서 데이터로 초기값을 채운다 (최초 렌더 1회 기준 스냅샷).
   const initialProfile = (editId ? resumes.find((r) => r.id === editId)?.profile : undefined) ?? null;
@@ -152,6 +154,7 @@ function WritePageInner() {
   const [careers, setCareers] = useState<CareerEntry[]>(initialProfile?.careers ?? []);
   const [showModal, setShowModal] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [genreError, setGenreError] = useState<"preferredGenres" | null>(null);
 
   const canCreateNew = editId !== null || resumes.length < MAX_RESUMES;
@@ -264,22 +267,31 @@ function WritePageInner() {
   };
 
   // AH-9: 검증 없이 현재 상태를 비공개 이력서로 저장 (기존 "비공개" 상태 재사용, 모달 없음)
-  const handleTempSave = () => {
-    const savedId = saveResume(resumeId, draftProfile);
+  const handleTempSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    const savedId = await persistResume(resumeId, draftProfile);
     if (!resumeId) setResumeId(savedId);
     setLastSavedAt(Date.now());
+    setIsSaving(false);
     toast.show("임시 저장했어요");
   };
 
-  const handlePublish = () => {
-    const savedId = saveResume(resumeId, draftProfile);
-    publishResume(savedId);
+  const handlePublish = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    const savedId = await persistResume(resumeId, draftProfile);
+    await publishResume(savedId);
+    setIsSaving(false);
     toast.show("구직란에 올렸어요");
     router.push("/feed");
   };
 
-  const handleSaveOnly = () => {
-    saveResume(resumeId, draftProfile);
+  const handleSaveOnly = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    await persistResume(resumeId, draftProfile);
+    setIsSaving(false);
     toast.show("'내 이력서'에 비공개로 저장했어요");
     router.push("/my");
   };
@@ -290,6 +302,8 @@ function WritePageInner() {
     .slice(0, 2)
     .map((part) => (PART_UPLOAD_TIPS[part] ? { part, tip: PART_UPLOAD_TIPS[part] } : null))
     .filter((t): t is { part: string; tip: string } => t !== null);
+
+  if (authLoading || !user) return null;
 
   if (!canCreateNew) {
     return (
@@ -529,8 +543,8 @@ function WritePageInner() {
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-3 flex items-center justify-between">
           <span className="text-caption text-neutral-400">{lastSavedAt ? "방금 저장됨" : "작성을 시작해 주세요"}</span>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleTempSave}>
-              임시 저장
+            <Button variant="outline" onClick={handleTempSave} disabled={isSaving}>
+              {isSaving ? "저장 중…" : "임시 저장"}
             </Button>
             <Button variant="dark-pill" arrow onClick={handleSubmitClick}>
               작성 완료
