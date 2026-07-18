@@ -50,7 +50,10 @@ function CareerCard({
         entered ? "opacity-100" : "opacity-0 -translate-y-1.5"
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
+      {/* justify-between이 늘어나지 않는 요소 셋(라벨·인풋·삭제)을 행 전체에 고르게 벌려놔서
+          라벨이 인풋과 붙지 않고 혼자 뚝 떨어져 보였다 — 인풋이 남는 공간을 직접 채우게 하고
+          삭제만 ml-auto로 오른쪽 끝에 붙인다. */}
+      <div className="flex items-center gap-3">
         <span className="text-caption font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-sm shrink-0">
           경력 {index + 1}
         </span>
@@ -58,12 +61,12 @@ function CareerCard({
           value={entry.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
           placeholder="참여한 작품명을 적어주세요"
-          className="max-w-xs"
+          className="flex-1 max-w-xs"
         />
         <button
           type="button"
           onClick={onRemove}
-          className="text-caption text-neutral-400 hover:text-danger transition-colors shrink-0"
+          className="ml-auto text-caption text-neutral-400 hover:text-danger transition-colors shrink-0"
         >
           삭제
         </button>

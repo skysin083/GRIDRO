@@ -7,15 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Layers,
-  Briefcase,
-  Heart,
-  Ban,
-  Palette,
-  Wrench,
-  Star,
-  Building2,
-  Clock,
   Download,
   Pen,
   ChevronUp,
@@ -36,22 +27,11 @@ const THUMBS_PER_PAGE = 5;
 const SWIPE_THRESHOLD_RATIO = 0.15;
 const SLIDE_TRANSITION = "transform .25s cubic-bezier(.22,.61,.36,1)";
 
-// --- 아이콘 달린 정보 행 ---
-function InfoRow({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
-}) {
+// --- 정보 행 ---
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">
-        {Icon && <Icon size={13} className="text-neutral-400" />}
-        {label}
-      </p>
+      <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">{label}</p>
       <p className="text-[15px] leading-[1.6] text-neutral-800">{value}</p>
     </div>
   );
@@ -62,10 +42,7 @@ function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; dis
   return (
     <>
       <div>
-        <p className="flex items-center gap-1.5 text-caption font-bold text-neutral-400 tracking-[.04em] mb-1.5">
-          <Heart size={13} className="text-primary-500" />
-          선호 장르
-        </p>
+        <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1.5">선호 장르</p>
         <div className="flex flex-wrap gap-1.5">
           {preferred.length > 0 ? (
             preferred.map((g) => (
@@ -83,10 +60,7 @@ function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; dis
       </div>
       {disliked.length > 0 && (
         <div>
-          <p className="flex items-center gap-1.5 text-caption font-bold text-neutral-400 tracking-[.04em] mb-1.5">
-            <Ban size={13} className="text-danger" />
-            불호 장르
-          </p>
+          <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1.5">불호 장르</p>
           <div className="flex flex-wrap gap-1.5">
             {disliked.map((g) => (
               <span
@@ -103,25 +77,15 @@ function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; dis
   );
 }
 
-// --- 작가 특징 분리 표시 (태그 + 자유입력) ---
-function AuthorTraitsRow({ traits, note }: { traits: string[]; note: string }) {
-  if (traits.length === 0 && !note) return null;
+// --- 칩 대신 줄바꿈으로 "고른 것"과 "직접 쓴 것"을 구분하는 행. 작가 특징·연락 가능
+// 시간대 둘 다 같은 모양(선택 항목 + 자유 기재)이라 하나로 공유한다. ---
+function ChoiceAndNoteRow({ label, choices, note }: { label: string; choices: string[]; note: string }) {
+  if (choices.length === 0 && !note) return null;
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-caption font-bold text-neutral-400 tracking-[.04em] mb-1.5">
-        <Star size={13} className="text-neutral-400" />
-        작가 특징
-      </p>
-      {traits.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-1.5">
-          {traits.map((t) => (
-            <Tag key={t} variant="part">
-              {t}
-            </Tag>
-          ))}
-        </div>
-      )}
-      {note && <p className="text-[15px] leading-[1.6] text-neutral-700">{note}</p>}
+      <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">{label}</p>
+      {choices.length > 0 && <p className="text-[15px] leading-[1.6] text-neutral-800">{choices.join(", ")}</p>}
+      {note && <p className="text-[15px] leading-[1.6] text-neutral-600 mt-0.5">{note}</p>}
     </div>
   );
 }
@@ -137,10 +101,7 @@ function CareerInfoRow({ careers }: { careers: CareerEntry[] }) {
   if (careers.length === 0) return null;
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">
-        <Briefcase size={13} className="text-neutral-400" />
-        경력
-      </p>
+      <p className="text-caption font-bold text-neutral-400 tracking-[.04em] mb-1">경력</p>
       <div className="space-y-2">
         {careers.map((c, i) => {
           const platformLabel = c.platform === "기타" ? c.platformCustom : c.platform;
@@ -516,12 +477,11 @@ function ProfileDetailInner({ id }: { id: string }) {
           )}
 
           <div className="border-t border-neutral-200 pt-5 space-y-5">
-            <InfoRow icon={Layers} label="작업 파트" value={profile.parts.join(", ") || "-"} />
+            <InfoRow label="작업 파트" value={profile.parts.join(", ") || "-"} />
             {!profile.isNewcomer && <CareerInfoRow careers={profile.careers} />}
             <GenrePreferenceRows preferred={profile.preferredGenres} disliked={profile.dislikedGenres} />
-            <InfoRow icon={Palette} label="작업물 성향" value={profile.workStyle} />
+            <InfoRow label="작업물 성향" value={profile.workStyle} />
             <InfoRow
-              icon={Wrench}
               label="사용 툴"
               value={
                 profile.tools
@@ -533,16 +493,15 @@ function ProfileDetailInner({ id }: { id: string }) {
                   .join(", ") || "-"
               }
             />
-            <AuthorTraitsRow traits={profile.authorTraits} note={profile.authorTraitsNote} />
+            <ChoiceAndNoteRow label="작가 특징" choices={profile.authorTraits} note={profile.authorTraitsNote} />
             <InfoRow
-              icon={Building2}
               label="근무형태"
               value={profile.workTypes.length > 0 ? profile.workTypes.join(" · ") : "-"}
             />
-            <InfoRow
-              icon={Clock}
+            <ChoiceAndNoteRow
               label="연락 가능 시간대"
-              value={profile.contactNote || (profile.contactTimes.length > 0 ? profile.contactTimes.join(" · ") : "-")}
+              choices={profile.contactTimes}
+              note={profile.contactNote}
             />
           </div>
         </div>
