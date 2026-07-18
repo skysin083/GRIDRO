@@ -228,7 +228,15 @@ export default function LandingPage() {
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 flex items-center justify-between flex-wrap gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg?v=3" alt="GRIDRO" className="h-4 w-auto" />
-          <span className="text-body-sm text-neutral-400">그림 프리랜서 구인구직 플랫폼 · 2026</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="text-body-sm text-neutral-400">그림 프리랜서 구인구직 플랫폼 · 2026</span>
+            <Link href="/privacy" className="text-body-sm text-neutral-400 hover:text-neutral-600 transition-colors">
+              개인정보처리방침
+            </Link>
+            <Link href="/terms" className="text-body-sm text-neutral-400 hover:text-neutral-600 transition-colors">
+              이용약관
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

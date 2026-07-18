@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/ui/Toast";
 import { consumeAuthNext } from "@/lib/authRedirect";
-import { identify, track } from "@/lib/mixpanel";
 
 // next 파라미터를 더는 URL 쿼리스트링으로 받지 않아(app/login/page.tsx 참고) useSearchParams가
 // 필요 없다 — Suspense 경계도 같이 걷어냈다.
@@ -21,21 +20,25 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     if (exchangedRef.current) return;
     exchangedRef.current = true;
-    supabase.auth.exchangeCodeForSession(window.location.href).then(({ data, error }) => {
+    supabase.auth.exchangeCodeForSession(window.location.href).then(async ({ error }) => {
       if (error) {
+        // 수동 교환이 SDK의 자동 세션 감지(detectSessionInUrl 기본값)와 경합해 "invalid flow
+        // state"로 실패해도, 세션 자체는 이미 만들어졌을 수 있다(lib/supabaseClient.ts 참고).
+        // 실제로 로그인된 상태인지 다시 확인해서, 세션이 있으면 조용히 성공 취급한다 —
+        // 로그인은 됐는데 "실패했어요" 토스트가 뜨는 오탐을 없앤다. login_completed 이벤트는
+        // 여기가 아니라 AuthListener의 onAuthStateChange(SIGNED_IN)에서 쏜다 — 이 수동 교환이
+        // 이겼는지 자동 감지가 이겼는지와 무관하게 항상 한 번만 발생한다.
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          router.replace(consumeAuthNext());
+          return;
+        }
         console.error("[login] exchangeCodeForSession failed:", error.message, error);
         setFailed(true);
         toast.show("로그인에 실패했어요. 다시 시도해 주세요", "danger");
         router.replace("/login");
         return;
       }
-      const user = data.session.user;
-      identify(user.id);
-      // created_at과 last_sign_in_at이 거의 같은 순간이면(5초 이내) 이번이 최초 로그인이다.
-      const isNewUser =
-        !user.last_sign_in_at ||
-        Math.abs(new Date(user.created_at).getTime() - new Date(user.last_sign_in_at).getTime()) < 5000;
-      track("login_completed", { is_new_user: isNewUser });
       // 존재하지 않는 라우트로 가지 않도록 consumeAuthNext가 허용된 경로인지 확인한 값만 돌려준다.
       router.replace(consumeAuthNext());
     });

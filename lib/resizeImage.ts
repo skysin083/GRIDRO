@@ -56,8 +56,10 @@ function resizeViaCanvas(file: File): Promise<string> {
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(objectUrl);
-      // 원고는 선이 살아야 해서 0.85로는 선 주변이 뭉갠다.
-      resolve(canvas.toDataURL("image/jpeg", 0.92));
+      // JPEG(손실 압축, 사진용)로 인코딩하면 선 주변에 링잉 아티팩트가 생겨 원고 화질이 깨진다.
+      // WebP는 같은 용량에서 라인아트를 훨씬 깨끗하게 보존한다. WebP 인코딩을 지원 안 하는 아주
+      // 오래된 브라우저는 toDataURL이 조용히 PNG(무손실)로 대체해 반환하므로 별도 분기가 필요 없다.
+      resolve(canvas.toDataURL("image/webp", 0.92));
     };
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
