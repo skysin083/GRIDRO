@@ -13,10 +13,11 @@ const FEEDBACK_URL =
 // Q&A는 배포에서 제외했다. 구인란은 다음 볼륨에서 열 예정이라 자리는 두되 클릭 시 준비 중임을 알린다.
 const NAV_TABS = [
   { label: "구인란", href: null },
-  { label: "구직란", href: "/feed", match: ["/feed", "/write", "/profile"] },
+  { label: "구직란", href: "/feed", match: ["/feed", "/profile"] },
   // UT: "'내 이력서'로 보이면 내 건 줄 알겠는데 '이력서'라고 되어 있으니 눈에 안 띈다"(멍군).
   // 이 탭을 내 것으로 인식하지 못한 게 공개·비공개 전환을 못 찾은 선행 원인이었다.
-  { label: "내 이력서", href: "/my", match: ["/my"] },
+  // /write는 항상 내 이력서를 쓰는 화면이라(진입 경로와 무관하게) 여기서 매치한다.
+  { label: "내 이력서", href: "/my", match: ["/my", "/write"] },
 ] as const;
 
 export default function Header() {
@@ -101,9 +102,15 @@ export default function Header() {
             </Link>
           ) : (
             <div className="flex items-center gap-1.5 shrink-0">
-              <Button href="/login" variant="ghost" size="sm">
-                로그인
-              </Button>
+              {/* 둘 다 /login으로 가는 같은 버튼이라, 좁은 화면에서 상단 메뉴(nav)가 밀려 0폭이
+                  되는 걸 막기 위해 모바일에서는 하나만 남긴다. Button의 base 클래스에 이미
+                  inline-flex가 있어 className="hidden ..."을 직접 주면 우선순위 경합으로 안 먹혀서,
+                  바깥에 감싸는 요소로 표시 여부를 제어한다. */}
+              <div className="hidden sm:block">
+                <Button href="/login" variant="ghost" size="sm">
+                  로그인
+                </Button>
+              </div>
               {/* 회원가입도 /login으로 보낸다 — 구글 OAuth 하나로 로그인·가입이 통합돼 있어 별도 폼이 없다. */}
               <Button href="/login" variant="dark-pill" size="sm">
                 회원가입
