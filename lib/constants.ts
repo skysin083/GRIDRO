@@ -1,24 +1,23 @@
-// 명암은 1도/2도가 실제로 다른 작업이라 구인 글에서도 나눠 적는다
-// (1도=명부/암부 투톤, 2도=A.O·반사광까지 얹는 단계).
-// 3D 배치·선화 보조·각색·효과음은 공정이 세분화되면서 실제로 따로 구하는 파트다.
-// 여기 없는 파트는 GenreSelect의 '추가'로 직접 적을 수 있다.
-export const PARTS = [
-  "콘티",
-  "각색",
-  "선화",
-  "선화 보조",
-  "밑색",
-  "1도 명암",
-  "2도 명암",
-  "채색",
-  "후보정",
-  "배경",
-  "3D 배치",
-  "효과음",
-  "전공정",
-] as const;
+// 작업 파트 카테고리 — 현직자 피드백으로 세분화한 공정 분류.
+// 카테고리 헤더 아래에 선택 가능한 파트를 묶는다. 기존 PARTS는 이 구조에서 flat으로 파생.
+export interface PartCategory {
+  category: string;
+  parts: readonly string[];
+}
 
-// UT: BL과 GL은 작업 조건이 갈리는 별개 장르라 묶으면 안 된다는 요구가 3명에게서 나왔다(묵찬·묵해·이려원).
+export const PART_CATEGORIES: PartCategory[] = [
+  { category: "각색", parts: ["각색", "글콘티", "콘티"] },
+  { category: "작화", parts: ["선화", "선화 보조", "3D 배치"] },
+  { category: "채색", parts: ["채색", "밑색", "1도 명암", "2도 명암"] },
+  { category: "보정", parts: ["후보정", "색감보정", "이펙트보정"] },
+  { category: "식자", parts: ["대사", "말풍선", "효과음"] },
+  { category: "배경", parts: ["배경", "스케치업"] },
+  { category: "기타", parts: ["전공정"] },
+];
+
+// PARTS flat 리스트 — 필터·저장·호환에 사용. PART_CATEGORIES에서 파생.
+export const PARTS: string[] = PART_CATEGORIES.flatMap((c) => [...c.parts]);
+
 export const GENRES = [
   "로맨스",
   "로판",
@@ -96,6 +95,16 @@ export const CONTACT_TIMES = [
   "시간 무관",
 ] as const;
 
+// 경력란 연재 주기 — 현직자 피드백으로 추가.
+export const SERIAL_CYCLES = [
+  "주간연재",
+  "격주연재",
+  "10일연재",
+  "월간연재",
+  "비정기",
+  "완결",
+] as const;
+
 // PARTS와 짝을 맞춰 유지할 것 — 여기 없는 파트를 고르면 대표 그림 팁이 뜨지 않는다.
 // 직접 추가한 파트는 팁이 없는 게 정상이다.
 export const PART_UPLOAD_TIPS: Record<string, string> = {
@@ -113,4 +122,3 @@ export const PART_UPLOAD_TIPS: Record<string, string> = {
   효과음: "효과음이 있는 컷과 없는 컷을 비교하면 배치 감각이 보여요",
   전공정: "한 컷을 공정 단계별로 나눠 보여주면 전체 실력이 정리돼요",
 };
-

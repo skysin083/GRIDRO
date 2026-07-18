@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CareerEntry } from "@/types/profile";
-import { PARTS, PLATFORMS } from "@/lib/constants";
+import { PARTS, PLATFORMS, SERIAL_CYCLES } from "@/lib/constants";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import MultiSelect from "@/components/ui/MultiSelect";
@@ -21,15 +21,18 @@ function emptyCareer(): CareerEntry {
     parts: [],
     memo: "",
     link: "",
+    serialCycle: "",
   };
 }
 
 function CareerCard({
   entry,
+  index,
   onUpdate,
   onRemove,
 }: {
   entry: CareerEntry;
+  index: number;
   onUpdate: (patch: Partial<CareerEntry>) => void;
   onRemove: () => void;
 }) {
@@ -48,6 +51,9 @@ function CareerCard({
       }`}
     >
       <div className="flex items-center justify-between gap-3">
+        <span className="text-caption font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-sm shrink-0">
+          경력 {index + 1}
+        </span>
         <Input
           value={entry.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
@@ -77,6 +83,13 @@ function CareerCard({
           options={PARTS}
           value={entry.parts}
           onChange={(parts) => onUpdate({ parts })}
+          allLabel="선택 안 함"
+        />
+        <Select
+          label="연재 주기"
+          options={SERIAL_CYCLES}
+          value={entry.serialCycle ?? ""}
+          onChange={(serialCycle) => onUpdate({ serialCycle })}
           allLabel="선택 안 함"
         />
       </div>
@@ -130,10 +143,11 @@ export default function CareerFields({ careers, onChange, isNewcomer }: CareerFi
   return (
     <div className={isNewcomer ? "opacity-40 pointer-events-none" : ""}>
       <div className="space-y-4">
-        {careers.map((entry) => (
+        {careers.map((entry, i) => (
           <CareerCard
             key={entry.id}
             entry={entry}
+            index={i}
             onUpdate={(patch) => update(entry.id, patch)}
             onRemove={() => remove(entry.id)}
           />

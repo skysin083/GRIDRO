@@ -7,7 +7,6 @@ import { useRequireAuth } from "@/lib/useRequireAuth";
 import { track } from "@/lib/mixpanel";
 import { CareerEntry, Profile, WorkStyle } from "@/types/profile";
 import {
-  PARTS,
   GENRES,
   TOOLS,
   WORK_STYLES,
@@ -22,6 +21,7 @@ import {
 import UploadSlot from "@/components/UploadSlot";
 import TagSelect from "@/components/TagSelect";
 import GenreSelect from "@/components/GenreSelect";
+import CategoryPartSelect from "@/components/CategoryPartSelect";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -138,6 +138,10 @@ function WritePageInner() {
   const [intro, setIntro] = useState(initialProfile?.intro ?? "");
   const [bio, setBio] = useState(initialProfile?.bio ?? "");
   const [images, setImages] = useState<string[]>(initialProfile?.images ?? []);
+  const [coverIndex, setCoverIndex] = useState(initialProfile?.coverIndex ?? 0);
+  const [imageCaptions, setImageCaptions] = useState<string[]>(
+    initialProfile?.imageCaptions ?? (initialProfile?.images ?? []).map(() => "")
+  );
   const [parts, setParts] = useState<string[]>(initialProfile?.parts ?? []);
   const [preferredGenres, setPreferredGenres] = useState<string[]>(initialProfile?.preferredGenres ?? []);
   const [dislikedGenres, setDislikedGenres] = useState<string[]>(initialProfile?.dislikedGenres ?? []);
@@ -169,6 +173,8 @@ function WritePageInner() {
       nickname,
       email,
       images,
+      coverIndex,
+      imageCaptions,
       parts,
       preferredGenres,
       dislikedGenres,
@@ -195,6 +201,8 @@ function WritePageInner() {
       nickname,
       email,
       images,
+      coverIndex,
+      imageCaptions,
       parts,
       preferredGenres,
       dislikedGenres,
@@ -500,12 +508,23 @@ function WritePageInner() {
                 id="field-parts"
                 caption="일하고 싶은 파트부터 순서대로 골라주세요. 1·2순위에 맞춰 아래 '대표 그림' 팁이 바뀌어요"
               >
-                {/* 공정이 계속 세분화돼 목록으로 다 덮을 수 없다 — 장르와 같이 직접 추가할 수 있게 둔다. */}
-                <GenreSelect options={PARTS} selected={parts} onChange={setParts} rankBadges={2} />
+                {/* 현직자 피드백: 파트가 공정 카테고리(각색·작화·채색·보정·식자·배경)별로 묶여
+                    보여야 찾기 쉽다. 직접 추가도 그대로 지원한다. */}
+                <CategoryPartSelect selected={parts} onChange={setParts} rankBadges={2} />
               </Field>
 
               <div id="field-images" className="scroll-mt-24">
-                <UploadSlot images={images} onChange={setImages} tips={uploadTips} label="대표 그림" required />
+                <UploadSlot
+                  images={images}
+                  onChange={setImages}
+                  coverIndex={coverIndex}
+                  onCoverIndexChange={setCoverIndex}
+                  captions={imageCaptions}
+                  onCaptionsChange={setImageCaptions}
+                  tips={uploadTips}
+                  label="대표 그림"
+                  required
+                />
               </div>
 
               <Field label="선호 장르" required id="field-preferredGenres" caption="1·2순위를 정해두면 맞는 작품을 만나기 쉬워요">
@@ -643,7 +662,7 @@ function WritePageInner() {
               {isSaving ? "저장 중…" : "임시 저장"}
             </Button>
             <Button variant="dark-pill" arrow onClick={handleSubmitClick}>
-              작성 완료
+              {editId ? "수정 완료" : "작성 완료"}
             </Button>
           </div>
         </div>

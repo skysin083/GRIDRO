@@ -19,6 +19,7 @@ export default function ProfileCard({ profile, position }: { profile: Profile; p
   const isOwn = useProfileStore((s) => s.resumes.some((r) => r.id === profile.id));
   const topParts = profile.parts.slice(0, 2);
   const topGenres = profile.preferredGenres.slice(0, 2);
+  const coverImage = profile.images[profile.coverIndex ?? 0];
 
   return (
     <Card hover="subtle" className="group">
@@ -28,10 +29,10 @@ export default function ProfileCard({ profile, position }: { profile: Profile; p
         onClick={() => track("card_clicked", { position, has_career: profile.careers.length > 0 })}
       >
         <div className="relative w-full aspect-[3/4] overflow-hidden bg-neutral-100">
-          {profile.images[0] && (
+          {coverImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={profile.images[0]}
+              src={coverImage}
               alt={`${profile.nickname} 대표 그림`}
               className="w-full h-full object-cover object-top"
             />

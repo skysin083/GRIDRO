@@ -16,6 +16,8 @@ interface ProfileStore {
   lastActivityAt: number | null;
   /** 구직란 카드에서 북마크한 프로필 id 목록. 마이페이지 "북마크한 작가"가 이걸 그대로 읽는다. */
   bookmarkedIds: string[];
+  /** 서버에서 이력서를 불러오는 중인지. true 동안은 빈 상태 메시지를 보여주지 않는다. */
+  hydrating: boolean;
   actions: {
     saveResume: (id: string | null, profile: Profile) => string;
     /** saveResume(로컬 낙관적 반영) + 이미지 업로드 + Supabase resumes 행 upsert. 명시적 저장 시점(임시저장·공개·비공개 저장)에서만 쓴다. */
@@ -85,6 +87,7 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
   resumes: [],
   lastActivityAt: null,
   bookmarkedIds: [],
+  hydrating: false,
   actions: {
     toggleBookmark: (id) => {
       const willBookmark = !get().bookmarkedIds.includes(id);
@@ -179,12 +182,15 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
       return savedId;
     },
     hydrateFromRemote: async (userId) => {
+      set({ hydrating: true });
       try {
         const resumes = await fetchMyResumes(userId);
         const lastActivityAt = resumes.reduce((max, r) => Math.max(max, r.profile.publishedAt ?? 0), 0) || null;
         set({ resumes, lastActivityAt });
       } catch (e) {
         console.error("이력서 불러오기 실패", e);
+      } finally {
+        set({ hydrating: false });
       }
     },
     clearRemote: () => set({ resumes: [], lastActivityAt: null }),

@@ -12,6 +12,8 @@ export interface CareerEntry {
   parts: string[];
   memo: string;
   link: string;
+  /** 연재 주기 (주간연재·격주연재 등). 선택 필드 — 기존 데이터 호환을 위해 optional. */
+  serialCycle?: string;
 }
 
 export interface Profile {
@@ -19,6 +21,10 @@ export interface Profile {
   nickname: string;
   email: string;
   images: string[];
+  /** 구직란 카드·상세 대표 이미지로 쓰이는 인덱스. 순서와 독립적으로 관리. 기본값 0. */
+  coverIndex?: number;
+  /** 이미지마다 붙이는 짧은 캡션. images와 같은 인덱스. */
+  imageCaptions?: string[];
   parts: string[];
   preferredGenres: string[];
   dislikedGenres: string[];

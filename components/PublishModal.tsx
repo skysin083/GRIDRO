@@ -23,9 +23,13 @@ export default function PublishModal({ profile, onPublish, onSaveOnly, onEditMor
           실제 구직란 카드는 3/4 세로형이라 크롭이 조금 다르지만, 확인용 미리보기엔 충분하다. */}
       <div className="rounded-lg overflow-hidden border border-neutral-200">
         <div className="w-full aspect-square bg-neutral-100">
-          {profile.images[0] && (
+          {profile.images[profile.coverIndex ?? 0] && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.images[0]} alt="대표 그림 미리보기" className="w-full h-full object-cover object-top" />
+            <img
+              src={profile.images[profile.coverIndex ?? 0]}
+              alt="대표 그림 미리보기"
+              className="w-full h-full object-cover object-top"
+            />
           )}
         </div>
         <div className="p-3 space-y-1.5">

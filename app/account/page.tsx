@@ -68,10 +68,10 @@ export default function AccountPage() {
         {primary ? (
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-100 shrink-0">
-              {primary.profile.images[0] && (
+              {primary.profile.images[primary.profile.coverIndex ?? 0] && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={primary.profile.images[0]}
+                  src={primary.profile.images[primary.profile.coverIndex ?? 0]}
                   alt={`${primary.profile.nickname} 대표 그림`}
                   className="w-full h-full object-cover object-top"
                 />
@@ -120,10 +120,10 @@ export default function AccountPage() {
                   className="group space-y-1.5"
                 >
                   <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 transition-colors group-hover:border-neutral-300">
-                    {profile.images[0] && (
+                    {profile.images[profile.coverIndex ?? 0] && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={profile.images[0]}
+                        src={profile.images[profile.coverIndex ?? 0]}
                         alt={`${profile.nickname} 대표 그림`}
                         className="w-full h-full object-cover object-top"
                       />

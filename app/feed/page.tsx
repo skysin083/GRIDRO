@@ -12,17 +12,35 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 
+// 카드 그리드와 같은 자리에서 로딩 중임을 알린다 — 안 그러면 서버 조회가 끝나기 전
+// "아직 등록된 이력서가 없어요"가 먼저 뜨어 오류가 난 줄 알기 쉽다(현직자 피드백).
+function FeedSkeleton() {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6" aria-hidden="true">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="animate-pulse space-y-2">
+          <div className="w-full aspect-[3/4] rounded-lg bg-neutral-100" />
+          <div className="h-4 w-4/5 rounded bg-neutral-100" />
+          <div className="h-3 w-2/5 rounded bg-neutral-100" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function FeedPage() {
   const resumes = useProfileStore((s) => s.resumes);
 
   const [filters, setFilters] = useState<FeedFilters>(EMPTY_FEED_FILTERS);
   // 전체 유저 대상 공개 이력서 — 로그인 여부와 무관하게 누구나 구직란을 볼 수 있어야 한다.
   const [publishedProfiles, setPublishedProfiles] = useState<Profile[]>([]);
+  const [feedLoading, setFeedLoading] = useState(true);
 
   useEffect(() => {
     fetchPublishedProfiles()
       .then(setPublishedProfiles)
-      .catch((e) => console.error("공개 이력서 조회 실패", e));
+      .catch((e) => console.error("공개 이력서 조회 실패", e))
+      .finally(() => setFeedLoading(false));
   }, []);
 
   // publishedAt 최신순(내림차순). 끌올하면 publishedAt이 갱신되어 자동으로 맨 위로 올라온다.
@@ -78,7 +96,9 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {filtered.length > 0 ? (
+      {feedLoading ? (
+        <FeedSkeleton />
+      ) : filtered.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           {filtered.map((profile, index) => (
             <ProfileCard key={profile.id} profile={profile} position={index} />
@@ -101,7 +121,7 @@ export default function FeedPage() {
         </div>
       )}
 
-      {filtered.length > 0 && (
+      {!feedLoading && filtered.length > 0 && (
         <div className="flex items-center justify-center gap-2 pt-4">
           <span className="w-9 h-9 rounded-md bg-neutral-900 text-white text-body-sm flex items-center justify-center">
             1

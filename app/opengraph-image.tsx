@@ -46,7 +46,7 @@ export default async function OpengraphImage() {
             color: "#8a8a8a",
           }}
         >
-          3분이면 끝나요
+          그림 프리랜서 구인구직 서비스
         </div>
       </div>
     ),

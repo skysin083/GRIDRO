@@ -71,9 +71,9 @@ export default function Header() {
         <div className="h-14 md:h-16 flex items-center justify-between gap-4 md:gap-8">
           <div className="flex items-center gap-12 min-w-0">
             <Link href="/" className="shrink-0 flex items-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               {/* 로고 파일 교체 후에도 예전 캐시된 이미지가 계속 보이는 걸 막기 위해 버전 쿼리를 붙인다.
                   교체할 때마다 이 값을 올릴 것. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.svg?v=3" alt="GRIDRO" className="h-5 w-auto" />
             </Link>
             {renderTabs("hidden md:flex items-center gap-9")}

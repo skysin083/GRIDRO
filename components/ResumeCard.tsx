@@ -76,10 +76,10 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
       {/* T-1: 카드 본문(이미지+텍스트) 클릭 -> 상세 이동. 쓰리닷·액션 버튼은 별도 형제 요소라 이동이 발동하지 않음 */}
       <Link href={`/profile/${resume.id}`} className="block">
         <div className="w-full aspect-[3/4] bg-neutral-100">
-          {resume.profile.images[0] && (
+          {resume.profile.images[resume.profile.coverIndex ?? 0] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={resume.profile.images[0]}
+              src={resume.profile.images[resume.profile.coverIndex ?? 0]}
               alt={`${resume.profile.nickname} 대표 그림`}
               className="w-full h-full object-cover object-top"
             />

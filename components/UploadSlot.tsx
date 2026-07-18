@@ -16,12 +16,28 @@ export interface UploadTip {
 interface UploadSlotProps {
   images: string[];
   onChange: (next: string[]) => void;
+  /** 대표 이미지 인덱스 — 순서와 독립적으로 관리 */
+  coverIndex: number;
+  onCoverIndexChange: (index: number) => void;
+  /** 이미지별 캡션 */
+  captions: string[];
+  onCaptionsChange: (captions: string[]) => void;
   tips?: UploadTip[];
   label: string;
   required?: boolean;
 }
 
-export default function UploadSlot({ images, onChange, tips = [], label, required }: UploadSlotProps) {
+export default function UploadSlot({
+  images,
+  onChange,
+  coverIndex,
+  onCoverIndexChange,
+  captions,
+  onCaptionsChange,
+  tips = [],
+  label,
+  required,
+}: UploadSlotProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -40,6 +56,8 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
     if (accepted.length === 0) return;
     const urls = await Promise.all(accepted.map(fileToImageUrl));
     onChange([...images, ...urls]);
+    // 새 이미지에 빈 캡션 추가
+    onCaptionsChange([...captions, ...urls.map(() => "")]);
     track("image_uploaded", { count: urls.length, is_first: images.length === 0 });
     toast.show(`그림 ${urls.length}장을 올렸어요`);
   };
@@ -57,22 +75,42 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
 
   const removeAt = (index: number) => {
     onChange(images.filter((_, i) => i !== index));
-  };
-
-  const makeCover = (index: number) => {
-    if (index === 0) return;
-    const next = [...images];
-    const [chosen] = next.splice(index, 1);
-    next.unshift(chosen);
-    onChange(next);
+    onCaptionsChange(captions.filter((_, i) => i !== index));
+    // coverIndex 보정: 삭제된 이미지가 대표였거나 대표보다 앞이면 조정
+    if (index === coverIndex) {
+      onCoverIndexChange(0);
+    } else if (index < coverIndex) {
+      onCoverIndexChange(coverIndex - 1);
+    }
   };
 
   const reorder = (from: number, to: number) => {
     if (from === to) return;
-    const next = [...images];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    onChange(next);
+    const nextImages = [...images];
+    const [movedImg] = nextImages.splice(from, 1);
+    nextImages.splice(to, 0, movedImg);
+    onChange(nextImages);
+
+    const nextCaptions = [...captions];
+    const [movedCap] = nextCaptions.splice(from, 1);
+    nextCaptions.splice(to, 0, movedCap);
+    onCaptionsChange(nextCaptions);
+
+    // coverIndex도 이동에 맞춰 갱신
+    let newCover = coverIndex;
+    if (from === coverIndex) {
+      newCover = to;
+    } else {
+      if (from < coverIndex && to >= coverIndex) newCover--;
+      else if (from > coverIndex && to <= coverIndex) newCover++;
+    }
+    if (newCover !== coverIndex) onCoverIndexChange(newCover);
+  };
+
+  const updateCaption = (index: number, value: string) => {
+    const next = [...captions];
+    next[index] = value;
+    onCaptionsChange(next);
   };
 
   return (
@@ -148,51 +186,61 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
         <div className="space-y-2">
           <div className="grid grid-cols-5 gap-3">
             {images.map((url, index) => (
-              <div
-                key={url}
-                draggable
-                onDragStart={() => setDragIndex(index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (dragIndex !== null) reorder(dragIndex, index);
-                  setDragIndex(null);
-                }}
-                onDragEnd={() => setDragIndex(null)}
-                className={`group relative aspect-[3/4] rounded-md overflow-hidden bg-neutral-100 cursor-grab active:cursor-grabbing border-2 transition-all duration-[.18s] ${
-                  dragIndex === index ? "opacity-30 border-primary-500 shadow-md scale-[1.02]" : "border-transparent"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={url}
-                  alt={`대표 그림 ${index + 1}`}
-                  draggable={false}
-                  className="w-full h-full object-cover object-top pointer-events-none"
-                />
-                {/* UT: 호버로만 노출한 탓에 '대표로 지정'을 찾는 데 병목이 생겼다.
-                    터치 기기에는 hover가 없어 발견 자체가 불가능하므로 상시 노출한다. */}
-                <button
-                  type="button"
-                  onClick={() => removeAt(index)}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-5 transition-colors hover:bg-black/80"
-                  aria-label="이미지 삭제"
+              <div key={`${url}-${index}`} className="space-y-1.5">
+                <div
+                  draggable
+                  onDragStart={() => setDragIndex(index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragIndex !== null) reorder(dragIndex, index);
+                    setDragIndex(null);
+                  }}
+                  onDragEnd={() => setDragIndex(null)}
+                  className={`group relative aspect-[3/4] rounded-md overflow-hidden bg-neutral-100 cursor-grab active:cursor-grabbing border-2 transition-all duration-[.18s] ${
+                    dragIndex === index ? "opacity-30 border-primary-500 shadow-md scale-[1.02]" : "border-transparent"
+                  }`}
                 >
-                  ×
-                </button>
-                {index === 0 ? (
-                  <span className="absolute bottom-1 left-1 text-caption px-1.5 py-0.5 rounded-sm bg-primary-500 text-white">
-                    대표
-                  </span>
-                ) : (
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={`대표 그림 ${index + 1}`}
+                    draggable={false}
+                    className="w-full h-full object-cover object-top pointer-events-none"
+                  />
+                  {/* UT: 호버로만 노출한 탓에 '대표로 지정'을 찾는 데 병목이 생겼다.
+                      터치 기기에는 hover가 없어 발견 자체가 불가능하므로 상시 노출한다. */}
                   <button
                     type="button"
-                    onClick={() => makeCover(index)}
-                    className="absolute bottom-0 left-0 right-0 py-1 text-caption font-medium bg-black/60 text-white transition-colors hover:bg-black/80"
+                    onClick={() => removeAt(index)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-5 transition-colors hover:bg-black/80"
+                    aria-label="이미지 삭제"
                   >
-                    대표로 지정
+                    ×
                   </button>
-                )}
+                  {index === coverIndex ? (
+                    <span className="absolute bottom-1 left-1 text-caption px-1.5 py-0.5 rounded-sm bg-primary-500 text-white">
+                      대표
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onCoverIndexChange(index)}
+                      className="absolute bottom-0 left-0 right-0 py-1 text-caption font-medium bg-black/60 text-white transition-colors hover:bg-black/80"
+                    >
+                      대표로 지정
+                    </button>
+                  )}
+                </div>
+                {/* 이미지별 캡션 입력 */}
+                <input
+                  type="text"
+                  value={captions[index] ?? ""}
+                  onChange={(e) => updateCaption(index, e.target.value)}
+                  placeholder="예) 「작품명」 채색"
+                  className="w-full text-caption text-neutral-700 placeholder:text-neutral-400 bg-neutral-50 border border-neutral-200 rounded px-2 py-1 outline-none focus:border-primary-400 transition-colors"
+                  maxLength={40}
+                />
               </div>
             ))}
           </div>
