@@ -58,7 +58,9 @@ export default function FeedPage() {
         <ArrowRight size={16} />
       </Link>
 
-      <div className="sticky top-16 z-20 bg-white/[.95] backdrop-blur-sm border-b border-neutral-200 py-4">
+      {/* 헤더가 모바일에선 탭 메뉴가 별도 줄로 내려가 91px, 데스크톱은 한 줄이라 64px — 그
+          아래에 딱 붙게 오프셋을 맞춘다. */}
+      <div className="sticky top-[91px] md:top-16 z-20 bg-white/[.95] backdrop-blur-sm border-b border-neutral-200 py-4">
         <div className="flex items-center justify-between gap-4">
           <FilterBar filters={filters} onChange={setFilters} resultCount={filtered.length} />
           <div className="flex items-center gap-3 shrink-0">
