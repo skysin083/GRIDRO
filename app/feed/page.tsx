@@ -38,7 +38,7 @@ export default function FeedPage() {
       <PageHeader
         title="어떤 작가를 찾고 있나요?"
         action={
-          <Button href={resumes.length > 0 ? "/my" : "/write"} variant="dark-pill" arrow>
+          <Button href={resumes.length > 0 ? "/my" : "/write?entry=cta_feed"} variant="dark-pill" arrow>
             구직하기
           </Button>
         }
@@ -64,8 +64,8 @@ export default function FeedPage() {
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {filtered.map((profile) => (
-            <ProfileCard key={profile.id} profile={profile} />
+          {filtered.map((profile, index) => (
+            <ProfileCard key={profile.id} profile={profile} position={index} />
           ))}
         </div>
       ) : (

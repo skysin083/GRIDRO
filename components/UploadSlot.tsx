@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { UploadCloud, Lightbulb } from "lucide-react";
 import { fileToImageUrl } from "@/lib/resizeImage";
 import { useToast } from "@/components/ui/Toast";
+import { track } from "@/lib/mixpanel";
 
 const MAX_IMAGES = 10;
 
@@ -39,6 +40,7 @@ export default function UploadSlot({ images, onChange, tips = [], label, require
     if (accepted.length === 0) return;
     const urls = await Promise.all(accepted.map(fileToImageUrl));
     onChange([...images, ...urls]);
+    track("image_uploaded", { count: urls.length, is_first: images.length === 0 });
     toast.show(`그림 ${urls.length}장을 올렸어요`);
   };
 

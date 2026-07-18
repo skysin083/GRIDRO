@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquarePlus, User } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { useAuthStore } from "@/store/useAuthStore";
+import Button from "@/components/ui/Button";
 
-// TODO: 실제 의견 수집 통로로 교체할 것 (구글 폼 URL 등). 지금은 임시로 빈 폼 링크.
-const FEEDBACK_URL = "https://forms.gle/REPLACE_ME";
+const FEEDBACK_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header";
 
 // Q&A는 배포에서 제외했다. 구인란은 다음 볼륨에서 열 예정이라 자리는 두되 클릭 시 준비 중임을 알린다.
 const NAV_TABS = [
@@ -20,13 +22,21 @@ const NAV_TABS = [
 export default function Header() {
   const pathname = usePathname();
   const toast = useToast();
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
+
+  // /login은 자체 전체화면 레이아웃(좌 브랜드/우 로그인)이라 상단 탭바를 겹쳐 보여주지 않는다.
+  if (pathname === "/login") return null;
 
   return (
     <header className="print:hidden sticky top-0 z-30 border-b border-neutral-200 bg-white">
       <div className="max-w-[1160px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between gap-8">
         <div className="flex items-center gap-12 min-w-0">
-          <Link href="/" className="text-h3 font-bold text-primary-500 shrink-0">
-            GRIDRO
+          <Link href="/" className="shrink-0 flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* 로고 파일 교체 후에도 예전 캐시된 이미지가 계속 보이는 걸 막기 위해 버전 쿼리를 붙인다.
+                교체할 때마다 이 값을 올릴 것. */}
+            <img src="/logo.svg?v=3" alt="GRIDRO" className="h-5 w-auto" />
           </Link>
 
           {/* AO-1: 하단 고정 탭바(AM-1) 정정 — 모바일에서도 상단 메뉴를 노출한다.
@@ -77,16 +87,29 @@ export default function Header() {
             <MessageSquarePlus size={16} />
             <span className="hidden sm:inline">의견 보내기</span>
           </a>
-          {/* 로그인 상태면 바로 마이페이지로, 비로그인이면 /account의 가드가 /login으로 보낸다. */}
-          <Link
-            href="/account"
-            aria-label="마이페이지"
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
-              pathname.startsWith("/account") ? "text-neutral-900" : "text-neutral-400"
-            }`}
-          >
-            <User size={18} />
-          </Link>
+          {/* 로그인 여부가 확정되기 전(getSession 조회 중)엔 아무것도 보여주지 않는다 —
+              버튼 두 개 -> 아이콘으로 깜빡이는 걸 막는다. */}
+          {authLoading ? null : user ? (
+            <Link
+              href="/account"
+              aria-label="마이페이지"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-100 ${
+                pathname.startsWith("/account") ? "text-neutral-900" : "text-neutral-400"
+              }`}
+            >
+              <User size={18} />
+            </Link>
+          ) : (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button href="/login" variant="ghost" size="sm">
+                로그인
+              </Button>
+              {/* 회원가입도 /login으로 보낸다 — 구글 OAuth 하나로 로그인·가입이 통합돼 있어 별도 폼이 없다. */}
+              <Button href="/login" variant="dark-pill" size="sm">
+                회원가입
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>

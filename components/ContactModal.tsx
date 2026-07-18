@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import { track } from "@/lib/mixpanel";
 
 const CHECKLIST = ["금액(MG/RS)", "마감기한", "테스트 여부", "작업예상일"];
 
@@ -12,6 +13,7 @@ export default function ContactModal({ email, onClose }: { email: string; onClos
   const handleCopy = async () => {
     await navigator.clipboard.writeText(email);
     setCopied(true);
+    track("email_copied");
     setTimeout(() => setCopied(false), 2000);
   };
 

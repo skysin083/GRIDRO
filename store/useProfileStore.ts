@@ -86,12 +86,14 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
   lastActivityAt: null,
   bookmarkedIds: [],
   actions: {
-    toggleBookmark: (id) =>
+    toggleBookmark: (id) => {
+      const willBookmark = !get().bookmarkedIds.includes(id);
       set({
-        bookmarkedIds: get().bookmarkedIds.includes(id)
-          ? get().bookmarkedIds.filter((b) => b !== id)
-          : [...get().bookmarkedIds, id],
-      }),
+        bookmarkedIds: willBookmark
+          ? [...get().bookmarkedIds, id]
+          : get().bookmarkedIds.filter((b) => b !== id),
+      });
+    },
     saveResume: (id, profile) => {
       if (id) {
         set({

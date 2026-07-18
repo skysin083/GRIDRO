@@ -6,6 +6,7 @@ import { MoreHorizontal } from "lucide-react";
 import { Resume } from "@/store/useProfileStore";
 import { getRemainingCooldownMs, isProfileComplete, useProfileStore } from "@/store/useProfileStore";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
+import { track } from "@/lib/mixpanel";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -57,6 +58,9 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
   const complete = isProfileComplete(resume.profile);
 
   const handleBump = () => {
+    const publishedAt = resume.profile.publishedAt;
+    const hoursSincePublish = publishedAt ? (Date.now() - publishedAt) / (60 * 60 * 1000) : 0;
+    track("bump_clicked", { hours_since_publish: Math.round(hoursSincePublish * 10) / 10 });
     onBump();
     setJustBumped(true);
     setTimeout(() => setJustBumped(false), 2000);

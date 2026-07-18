@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Header from "@/components/Header";
 import { ToastProvider } from "@/components/ui/Toast";
 import AuthListener from "@/components/AuthListener";
+import AnalyticsListener from "@/components/AnalyticsListener";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-neutral-0">
         <ToastProvider>
           <AuthListener />
+          <AnalyticsListener />
           <Header />
           <main className="flex-1">{children}</main>
         </ToastProvider>

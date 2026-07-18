@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useProfileStore, isProfileComplete, getRemainingCooldownMs } from "@/store/useProfileStore";
 import { useToast } from "@/components/ui/Toast";
+import { track } from "@/lib/mixpanel";
 import Modal from "@/components/ui/Modal";
 import ModalButton from "@/components/ui/ModalButton";
 
@@ -56,6 +57,7 @@ export function usePublishRequest() {
     // B방식: 쿨다운 중이면 공개는 허용하되 피드 순서는 그대로임을 안내
     const remaining = getRemainingCooldownMs(lastActivityAt, Date.now());
     publishResume(id);
+    track("resume_published", { from: "my_tab" });
     if (remaining > 0) {
       toast.show(`구직란에 올렸어요. 피드 상단에는 ${formatRemaining(remaining)} 뒤에 올라가요`);
     } else {
@@ -75,6 +77,7 @@ export function usePublishRequest() {
           onClick={() => {
             const remaining = getRemainingCooldownMs(lastActivityAt, Date.now());
             publishResume(confirmTarget.id);
+            track("resume_published", { from: "my_tab" });
             setConfirmTarget(null);
             if (remaining > 0) {
               toast.show(`구직란에 올렸어요. 피드 상단에는 ${formatRemaining(remaining)} 뒤에 올라가요`);

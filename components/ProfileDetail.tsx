@@ -7,6 +7,7 @@ import { useProfileById } from "@/lib/getProfileById";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
 import { usePublishRequest } from "@/lib/usePublishRequest";
+import { track } from "@/lib/mixpanel";
 import { CSP_EDITION_TOOL } from "@/lib/constants";
 import { CareerEntry } from "@/types/profile";
 import Tag from "@/components/ui/Tag";
@@ -115,7 +116,7 @@ function ActionButtons({
         >
           {isPublished ? "비공개로 전환" : "구직란에 올리기"}
         </Button>
-        <Button variant="outline" className="w-full" href={`/write?id=${id}`}>
+        <Button variant="outline" className="w-full" href={`/write?id=${id}&entry=my_tab`}>
           수정하기
         </Button>
         <Button variant="outline" className="w-full" href={`/profile/${id}?print=1`}>
@@ -127,12 +128,22 @@ function ActionButtons({
   // 카드(ProfileCard)에는 있던 북마크가 상세에는 없었다 — 컨택하기 옆에 작게 붙여 같은 자리에서 처리하게 한다.
   return (
     <div className={`flex items-center gap-2 ${stackClassName}`}>
-      <Button variant="dark-pill" className="flex-1" onClick={onContact}>
+      <Button
+        variant="dark-pill"
+        className="flex-1"
+        onClick={() => {
+          track("contact_clicked");
+          onContact();
+        }}
+      >
         컨택하기
       </Button>
       <button
         type="button"
-        onClick={onToggleBookmark}
+        onClick={() => {
+          track(bookmarked ? "bookmark_removed" : "bookmark_added", { source: "detail", profile_id: id });
+          onToggleBookmark();
+        }}
         aria-label="북마크"
         aria-pressed={bookmarked}
         className={`w-11 h-11 shrink-0 rounded-pill border flex items-center justify-center transition-colors ${
@@ -188,11 +199,13 @@ function ProfileDetailInner({ id }: { id: string }) {
   const toggleBookmark = useProfileStore((s) => s.actions.toggleBookmark);
 
   useEffect(() => {
-    if (searchParams.get("print") === "1") {
+    if (searchParams.get("print") === "1" && profile) {
+      track("pdf_downloaded", { image_count: profile.images.length });
       const timer = setTimeout(() => window.print(), 300);
       return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, !!profile]);
 
   // 원격 조회 중엔 "찾을 수 없음"을 먼저 보여주지 않는다 — 공유 링크로 들어온 방문자에게
   // 잠깐이라도 오탐 메시지가 깜빡이는 걸 막는다.

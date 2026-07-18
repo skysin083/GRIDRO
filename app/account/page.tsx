@@ -7,6 +7,7 @@ import { useProfileStore } from "@/store/useProfileStore";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchProfilesByIds } from "@/lib/resumesApi";
+import { track } from "@/lib/mixpanel";
 import { Profile } from "@/types/profile";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -133,6 +134,7 @@ export default function AccountPage() {
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
+                        track("bookmark_removed", { source: "my_page", profile_id: profile.id });
                         toggleBookmark(profile.id);
                       }}
                       aria-label="북마크 해제"

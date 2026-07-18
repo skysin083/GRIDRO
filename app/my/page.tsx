@@ -35,7 +35,7 @@ export default function MyPage() {
         {resumes.length < MAX_RESUMES ? (
           <button
             type="button"
-            onClick={() => router.push("/write")}
+            onClick={() => router.push("/write?entry=my_tab")}
             className="card-hover w-full min-h-[360px] flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 text-neutral-400 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-500"
           >
             <Plus size={24} />
@@ -53,7 +53,7 @@ export default function MyPage() {
           <ResumeCard
             key={resume.id}
             resume={resume}
-            onEdit={() => router.push(`/write?id=${resume.id}`)}
+            onEdit={() => router.push(`/write?id=${resume.id}&entry=my_tab`)}
             onDelete={() => {
               deleteResume(resume.id);
               toast.show("이력서를 삭제했어요");

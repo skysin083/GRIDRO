@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useProfileStore, MAX_RESUMES } from "@/store/useProfileStore";
 import { useRequireAuth } from "@/lib/useRequireAuth";
+import { track } from "@/lib/mixpanel";
 import { CareerEntry, Profile, WorkStyle } from "@/types/profile";
 import {
   PARTS,
@@ -119,6 +120,9 @@ function WritePageInner() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const editId = searchParams.get("id");
+  // 검증 계획 resume_form_started의 entry 속성 — /write로 들어오는 진입점(app/page.tsx,
+  // app/feed/page.tsx, app/my/page.tsx, ProfileDetail.tsx)이 쿼리스트링으로 넘겨준다.
+  const entry = searchParams.get("entry") ?? "unknown";
   const { user, loading: authLoading } = useRequireAuth();
 
   const resumes = useProfileStore((s) => s.resumes);
@@ -211,10 +215,34 @@ function WritePageInner() {
     ]
   );
 
+  const hasAnyInput = Boolean(nickname || email || intro || images.length > 0 || parts.length > 0);
+
+  // resume_form_started: 수정 모드는 이미 채워진 폼이라 '첫 입력'을 감지할 수 없어 진입 자체를
+  // 시작점으로 본다. 새 이력서는 실제로 뭔가 채워진 첫 순간이 시작점이다. elapsed_sec/duration_sec
+  // 계산의 기준 시각(formStartTimeRef)도 여기서 같이 잡는다.
+  const formStartedRef = useRef(false);
+  const formStartTimeRef = useRef<number | null>(null);
+  const usedAiRef = useRef(false);
+
+  useEffect(() => {
+    if (formStartedRef.current || !editId) return;
+    formStartedRef.current = true;
+    formStartTimeRef.current = Date.now();
+    track("resume_form_started", { entry, mode: "edit" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (formStartedRef.current || editId || !hasAnyInput) return;
+    formStartedRef.current = true;
+    formStartTimeRef.current = Date.now();
+    track("resume_form_started", { entry, mode: "new" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAnyInput]);
+
   // 디바운스 자동저장 (세션 스토어에만 반영, 실제 항목 하나라도 채워졌을 때부터)
   useEffect(() => {
     if (!canCreateNew) return;
-    const hasAnyInput = nickname || email || intro || images.length > 0 || parts.length > 0;
     if (!hasAnyInput) return;
     const timer = setTimeout(() => {
       const savedId = saveResume(resumeId, draftProfile);
@@ -226,21 +254,41 @@ function WritePageInner() {
   }, [draftProfile]);
 
   // AD-1: FIELD_ORDER(=폼 순서) 하나에서 체크리스트·필수 검증을 전부 파생한다.
-  const doneMap: Record<(typeof FIELD_ORDER)[number]["key"], boolean> = {
-    nickname: nickname.trim() !== "",
-    email: email.trim() !== "",
-    intro: intro.trim() !== "",
-    bio: bio.trim() !== "",
-    parts: parts.length > 0,
-    images: images.length > 0,
-    preferredGenres: preferredGenres.length > 0,
-    dislikedGenres: dislikedGenres.length > 0,
-    tools: toolNames.length > 0,
-    workType: workTypes.length > 0,
-    contactTime: contactTimes.length > 0 || contactNote.trim() !== "",
-    careers: careers.length > 0 || isNewcomer,
-    authorTraits: authorTraits.length > 0 || authorTraitsNote.trim() !== "",
-  };
+  const doneMap: Record<(typeof FIELD_ORDER)[number]["key"], boolean> = useMemo(
+    () => ({
+      nickname: nickname.trim() !== "",
+      email: email.trim() !== "",
+      intro: intro.trim() !== "",
+      bio: bio.trim() !== "",
+      parts: parts.length > 0,
+      images: images.length > 0,
+      preferredGenres: preferredGenres.length > 0,
+      dislikedGenres: dislikedGenres.length > 0,
+      tools: toolNames.length > 0,
+      workType: workTypes.length > 0,
+      contactTime: contactTimes.length > 0 || contactNote.trim() !== "",
+      careers: careers.length > 0 || isNewcomer,
+      authorTraits: authorTraits.length > 0 || authorTraitsNote.trim() !== "",
+    }),
+    [
+      nickname,
+      email,
+      intro,
+      bio,
+      parts,
+      images,
+      preferredGenres,
+      dislikedGenres,
+      toolNames,
+      workTypes,
+      contactTimes,
+      contactNote,
+      careers,
+      isNewcomer,
+      authorTraits,
+      authorTraitsNote,
+    ]
+  );
   const checklistItems: ChecklistItem[] = FIELD_ORDER.filter((f) => f.required || doneMap[f.key]).map((f) => ({
     label: f.label,
     done: doneMap[f.key],
@@ -250,6 +298,33 @@ function WritePageInner() {
   const checklistPercent = Math.round(
     (requiredFields.filter((f) => doneMap[f.key]).length / requiredFields.length) * 100
   );
+
+  // resume_section_completed: doneMap의 각 항목이 false->true로 바뀌는 순간마다 1회.
+  const completedSectionsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const field of FIELD_ORDER) {
+      if (doneMap[field.key] && !completedSectionsRef.current.has(field.key)) {
+        completedSectionsRef.current.add(field.key);
+        const elapsedSec = formStartTimeRef.current ? Math.round((Date.now() - formStartTimeRef.current) / 1000) : 0;
+        track("resume_section_completed", { section: field.key, elapsed_sec: elapsedSec });
+      }
+    }
+  }, [doneMap]);
+
+  // resume_completed: 필수 항목 100% 도달 시 1회.
+  const resumeCompletedRef = useRef(false);
+  useEffect(() => {
+    if (resumeCompletedRef.current || checklistPercent < 100) return;
+    resumeCompletedRef.current = true;
+    const durationSec = formStartTimeRef.current ? Math.round((Date.now() - formStartTimeRef.current) / 1000) : 0;
+    const optionalFilledCount = FIELD_ORDER.filter((f) => !f.required && doneMap[f.key]).length;
+    track("resume_completed", {
+      duration_sec: durationSec,
+      optional_filled_count: optionalFilledCount,
+      used_ai: usedAiRef.current,
+    });
+  }, [checklistPercent, doneMap]);
+
   const handleSubmitClick = () => {
     const firstMissing = requiredFields.find((f) => !doneMap[f.key]);
     if (firstMissing) {
@@ -274,6 +349,7 @@ function WritePageInner() {
     if (!resumeId) setResumeId(savedId);
     setLastSavedAt(Date.now());
     setIsSaving(false);
+    track("resume_saved_private", { is_draft: true });
     toast.show("임시 저장했어요");
   };
 
@@ -283,6 +359,7 @@ function WritePageInner() {
     const savedId = await persistResume(resumeId, draftProfile);
     await publishResume(savedId);
     setIsSaving(false);
+    track("resume_published", { from: "modal" });
     toast.show("구직란에 올렸어요");
     router.push("/feed");
   };
@@ -292,6 +369,7 @@ function WritePageInner() {
     setIsSaving(true);
     await persistResume(resumeId, draftProfile);
     setIsSaving(false);
+    track("resume_saved_private", { is_draft: false });
     toast.show("'내 이력서'에 비공개로 저장했어요");
     router.push("/my");
   };
@@ -346,7 +424,12 @@ function WritePageInner() {
           </div>
 
           {formMode === "paste" ? (
-            <AiPasteSection onComplete={() => setFormMode("manual")} />
+            <AiPasteSection
+              onComplete={() => {
+                usedAiRef.current = true;
+                setFormMode("manual");
+              }}
+            />
           ) : (
             <div className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

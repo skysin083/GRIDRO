@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Sparkle } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { track } from "@/lib/mixpanel";
 
 export default function AiPasteSection({ onComplete }: { onComplete?: () => void }) {
   const [text, setText] = useState("");
   const [processing, setProcessing] = useState(false);
 
   const handleClick = () => {
+    track("ai_paste_used", { text_length: text.length });
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);

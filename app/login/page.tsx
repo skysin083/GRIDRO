@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 import { saveAuthNext } from "@/lib/authRedirect";
+import { track } from "@/lib/mixpanel";
 import Button from "@/components/ui/Button";
 
 function GoogleIcon() {
@@ -31,6 +32,7 @@ function LoginPageInner() {
   }, [loading, user, next, router]);
 
   const handleGoogleLogin = () => {
+    track("login_started");
     // next는 sessionStorage로 넘긴다 — redirectTo에 쿼리스트링으로 실어 보내면 Supabase가
     // 자체 code 파라미터를 붙이는 과정에서 뒤섞여 콜백 후 404로 이어졌다.
     saveAuthNext(next);
@@ -45,26 +47,16 @@ function LoginPageInner() {
   if (loading || user) return null;
 
   return (
-    <div className="min-h-[calc(100vh-64px)] grid md:grid-cols-2">
-      {/* 좌: 브랜드 비주얼 영역 — 데스크톱에서만, 기존 디자인 시스템 primary 톤 */}
-      <div className="hidden md:flex flex-col justify-center px-16 bg-primary-500 text-white">
-        <span className="text-h3 font-bold">GRIDRO</span>
-        <p className="mt-4 text-[28px] leading-[1.4] font-bold">
-          그림 프리랜서를 위한
-          <br />
-          가장 빠른 이력서
+    // AM-2(개정): 좌우 분할 대신 단일 컬럼 중앙 정렬 — 좌측 브랜드 영역은 제거.
+    <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="w-full max-w-[400px] text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg?v=3" alt="GRIDRO" className="h-7 w-auto mx-auto mb-12" />
+        <h1 className="text-[28px] md:text-[32px] font-bold text-neutral-900 mb-3">로그인</h1>
+        <p className="text-[14px] md:text-[16px] leading-[1.5] text-neutral-500 mb-6">
+          Google 계정으로 간편하게 시작하세요
         </p>
-        <p className="mt-3 text-body-sm text-white/80">백지 대신 질문지로, 3분이면 완성돼요.</p>
-      </div>
-
-      {/* 우: 로그인 영역 — 이메일/비밀번호 없이 Google 버튼 하나 */}
-      <div className="flex flex-col items-center justify-center px-6 py-20 gap-8">
-        <span className="md:hidden text-h3 font-bold text-primary-500">GRIDRO</span>
-        <div className="text-center space-y-2">
-          <h1 className="text-title font-bold text-neutral-900">로그인</h1>
-          <p className="text-body-sm text-neutral-500">Google 계정으로 간편하게 시작하세요</p>
-        </div>
-        <Button variant="outline" size="lg" className="w-full max-w-[320px] gap-2" onClick={handleGoogleLogin}>
+        <Button variant="outline" size="lg" className="w-full gap-2" onClick={handleGoogleLogin}>
           <GoogleIcon />
           Google로 계속하기
         </Button>

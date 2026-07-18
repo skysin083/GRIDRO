@@ -5,10 +5,11 @@ import { Bookmark } from "lucide-react";
 import { Profile } from "@/types/profile";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { useProfileStore } from "@/store/useProfileStore";
+import { track } from "@/lib/mixpanel";
 import Card from "@/components/ui/Card";
 import Tag from "@/components/ui/Tag";
 
-export default function ProfileCard({ profile }: { profile: Profile }) {
+export default function ProfileCard({ profile, position }: { profile: Profile; position: number }) {
   // 컴포넌트 로컬 state였던 걸 스토어로 옮겼다 — 새로고침/페이지 이동에도 유지되고,
   // 마이페이지의 "북마크한 작가" 섹션이 이 값을 그대로 읽는다.
   const bookmarked = useProfileStore((s) => s.bookmarkedIds.includes(profile.id));
@@ -21,7 +22,11 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
 
   return (
     <Card hover="subtle" className="group">
-      <Link href={`/profile/${profile.id}`} className="block">
+      <Link
+        href={`/profile/${profile.id}`}
+        className="block"
+        onClick={() => track("card_clicked", { position, has_career: profile.careers.length > 0 })}
+      >
         <div className="relative w-full aspect-[3/4] overflow-hidden bg-neutral-100">
           {profile.images[0] && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -40,6 +45,10 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
+                track(bookmarked ? "bookmark_removed" : "bookmark_added", {
+                  source: "feed",
+                  profile_id: profile.id,
+                });
                 toggleBookmark(profile.id);
               }}
               aria-label="북마크"

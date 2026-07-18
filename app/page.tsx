@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
-import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 
@@ -61,7 +61,12 @@ export default function LandingPage() {
             </p>
 
             <div className="flex items-center gap-5 flex-wrap">
-              <Button href="/write" variant="dark-pill" arrow className="hover:-translate-y-0.5 hover:shadow-btn">
+              <Button
+                href="/write?entry=cta_hero"
+                variant="dark-pill"
+                arrow
+                className="hover:-translate-y-0.5 hover:shadow-btn"
+              >
                 구직 하러가기
               </Button>
               <Link href="/feed" className="text-body-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-900">
@@ -203,7 +208,13 @@ export default function LandingPage() {
               lead="지금 쓰고, 올리는 건 나중에 정해도 괜찮아요."
             />
             <div className="flex flex-col items-center gap-3 mt-8">
-              <Button href="/write" variant="dark-pill" size="lg" arrow className="hover:-translate-y-0.5 hover:shadow-btn">
+              <Button
+                href="/write?entry=cta_hero"
+                variant="dark-pill"
+                size="lg"
+                arrow
+                className="hover:-translate-y-0.5 hover:shadow-btn"
+              >
                 구직 하러가기
               </Button>
               <p className="text-caption text-neutral-400">회원가입 없이 먼저 둘러볼 수 있어요</p>
@@ -215,7 +226,8 @@ export default function LandingPage() {
       {/* I-8 푸터 */}
       <footer className="bg-white border-t border-neutral-200 py-10">
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 flex items-center justify-between flex-wrap gap-3">
-          <span className="text-[16px] font-bold text-primary-500">GRIDRO</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg?v=3" alt="GRIDRO" className="h-4 w-auto" />
           <span className="text-body-sm text-neutral-400">그림 프리랜서 구인구직 플랫폼 · 2026</span>
         </div>
       </footer>
