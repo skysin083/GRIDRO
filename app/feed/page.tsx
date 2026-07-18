@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useProfileStore } from "@/store/useProfileStore";
 import { fetchPublishedProfiles } from "@/lib/resumesApi";
 import { Profile } from "@/types/profile";
@@ -38,11 +40,23 @@ export default function FeedPage() {
       <PageHeader
         title="어떤 작가를 찾고 있나요?"
         action={
-          <Button href={resumes.length > 0 ? "/my" : "/write?entry=cta_feed"} variant="dark-pill" arrow>
-            구직하기
-          </Button>
+          // 모바일에서는 카드를 내려보는 동안 이 버튼이 화면 밖으로 밀려나 다시 맨 위로
+          // 스크롤해야 했다 — 아래 고정 버튼으로 대체하고, 여기는 데스크톱에서만 보여준다.
+          <div className="hidden md:block">
+            <Button href={resumes.length > 0 ? "/my" : "/write?entry=cta_feed"} variant="dark-pill" arrow>
+              구직하기
+            </Button>
+          </div>
         }
       />
+
+      <Link
+        href={resumes.length > 0 ? "/my" : "/write?entry=cta_feed"}
+        className="md:hidden fixed bottom-5 right-5 z-30 flex items-center gap-1.5 bg-neutral-900 text-white text-body-sm font-medium rounded-pill pl-4 pr-3.5 py-3 shadow-lg"
+      >
+        구직하기
+        <ArrowRight size={16} />
+      </Link>
 
       <div className="sticky top-16 z-20 bg-white/[.95] backdrop-blur-sm border-b border-neutral-200 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -63,7 +77,7 @@ export default function FeedPage() {
       </div>
 
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           {filtered.map((profile, index) => (
             <ProfileCard key={profile.id} profile={profile} position={index} />
           ))}

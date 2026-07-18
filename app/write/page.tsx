@@ -615,16 +615,32 @@ function WritePageInner() {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-[88px] h-fit">
+        {/* 완성도 카드는 데스크톱에서만 옆에 붙여둔다 — 모바일은 한 칼럼이라 폼 맨 아래로
+            밀려나 버려서(다 채운 뒤에야 보임) 진행 중 안내로서 의미가 없었다. 모바일은 아래
+            고정 바에 퍼센트만 조그맣게 보여준다. */}
+        <aside className="hidden lg:block lg:sticky lg:top-[88px] h-fit">
           <ProgressChecklist items={checklistItems} percent={checklistPercent} />
         </aside>
       </div>
 
       {/* 하단 고정 저장 바 */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-md border-t border-neutral-200">
-        <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-3 flex items-center justify-between">
-          <span className="text-caption text-neutral-400">{lastSavedAt ? "방금 저장됨" : "작성을 시작해 주세요"}</span>
-          <div className="flex items-center gap-3">
+        <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="hidden sm:inline text-caption text-neutral-400 shrink-0">
+              {lastSavedAt ? "방금 저장됨" : "작성을 시작해 주세요"}
+            </span>
+            <div className="lg:hidden flex items-center gap-2 shrink-0">
+              <span className="text-caption font-bold text-neutral-900">완성도 {checklistPercent}%</span>
+              <div className="w-14 h-1.5 rounded-pill bg-neutral-200 overflow-hidden">
+                <div
+                  className="h-full bg-primary-500 transition-[width] duration-[.4s] ease-[cubic-bezier(.22,.61,.36,1)]"
+                  style={{ width: `${checklistPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
             <Button variant="outline" onClick={handleTempSave} disabled={isSaving}>
               {isSaving ? "저장 중…" : "임시 저장"}
             </Button>
