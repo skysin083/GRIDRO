@@ -1,12 +1,17 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 import { saveAuthNext } from "@/lib/authRedirect";
 import { track } from "@/lib/mixpanel";
 import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+
+const FEEDBACK_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header";
 
 function GoogleIcon() {
   return (
@@ -47,20 +52,58 @@ function LoginPageInner() {
   if (loading || user) return null;
 
   return (
-    // AM-2(개정): 좌우 분할 대신 단일 컬럼 중앙 정렬 — 좌측 브랜드 영역은 제거.
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-[400px] text-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.svg?v=3" alt="GRIDRO" className="h-7 w-auto mx-auto mb-12" />
-        <h1 className="text-[28px] md:text-[32px] font-bold text-neutral-900 mb-3">로그인</h1>
-        <p className="text-[14px] md:text-[16px] leading-[1.5] text-neutral-500 mb-6">
-          Google 계정으로 간편하게 시작하세요
-        </p>
-        <Button variant="outline" size="lg" className="w-full gap-2" onClick={handleGoogleLogin}>
-          <GoogleIcon />
-          Google로 계속하기
-        </Button>
+    // AO(개정): 상단 로고 바 + 카드 컨테이너 + 하단 푸터 — 좌우 2컬럼 분할은 폐기.
+    <div className="min-h-screen flex flex-col bg-neutral-50">
+      {/* AO-1: 로고만 있는 얇은 바(메뉴 없음), 중앙 정렬 */}
+      <header className="h-14 md:h-16 shrink-0 flex items-center justify-center">
+        <Link href="/" aria-label="GRIDRO 홈으로">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg?v=3" alt="GRIDRO" className="h-6 md:h-7 w-auto" />
+        </Link>
+      </header>
+
+      {/* AO-2: 카드는 화면 중앙보다 약간 위 — 남은 세로 공간을 4:6 비율 spacer로 나눠 잡는다 */}
+      <div className="flex-1 flex flex-col items-center px-5">
+        <div className="flex-[4]" />
+        <Card hover="none" className="w-full max-w-none md:max-w-[400px] py-10 px-8 text-center">
+          <h1 className="text-h1 font-bold text-neutral-900 mb-3">로그인</h1>
+          <p className="text-body-sm text-neutral-500 mb-6">Google 계정으로 간편하게 시작하세요</p>
+          <Button variant="outline" size="lg" className="w-full gap-2" onClick={handleGoogleLogin}>
+            <GoogleIcon />
+            Google로 계속하기
+          </Button>
+          <p className="text-caption text-neutral-400 mt-6">
+            로그인하면{" "}
+            <Link href="/terms" className="text-neutral-500 hover:text-neutral-700 transition-colors">
+              이용약관
+            </Link>
+            과{" "}
+            <Link href="/privacy" className="text-neutral-500 hover:text-neutral-700 transition-colors">
+              개인정보처리방침
+            </Link>
+            에 동의한 것으로 봐요.
+          </p>
+        </Card>
+        <div className="flex-[6]" />
       </div>
+
+      {/* AO-4: 하단 푸터 — 얇고 조용하게 */}
+      <footer className="shrink-0 px-5 py-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 max-w-[480px] mx-auto text-caption text-neutral-400">
+          <span>© 2026 GRIDRO</span>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-neutral-600 transition-colors">
+              이용약관
+            </Link>
+            <Link href="/privacy" className="hover:text-neutral-600 transition-colors">
+              개인정보처리방침
+            </Link>
+            <a href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-neutral-600 transition-colors">
+              의견 보내기
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
