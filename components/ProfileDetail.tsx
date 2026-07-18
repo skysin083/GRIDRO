@@ -268,7 +268,7 @@ function ScrollToTopButton() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-20 md:bottom-8 right-5 z-30 w-11 h-11 rounded-full bg-neutral-900/80 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-[.25s] hover:bg-neutral-900 hover:scale-110 print:hidden"
+      className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-neutral-900/80 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-[.25s] hover:bg-neutral-900 hover:scale-110 print:hidden"
       aria-label="맨 위로"
     >
       <ChevronUp size={20} />
@@ -441,6 +441,15 @@ function ProfileDetailInner({ id }: { id: string }) {
   const visibleThumbs = profile.images.slice(thumbStart, thumbStart + THUMBS_PER_PAGE);
   const hasPrevThumbPage = thumbPage > 0;
   const hasMoreThumbPages = thumbStart + THUMBS_PER_PAGE < imageCount;
+  // mask-image로 스크롤 가능한 쪽의 썸네일을 실제로 옅어지며 사라지게 한다.
+  const thumbMaskImage =
+    hasPrevThumbPage && hasMoreThumbPages
+      ? "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)"
+      : hasMoreThumbPages
+        ? "linear-gradient(to right, black 88%, transparent 100%)"
+        : hasPrevThumbPage
+          ? "linear-gradient(to right, transparent 0%, black 12%, black 100%)"
+          : undefined;
 
   // 현재 이미지의 캡션
   const currentCaption = profile.imageCaptions?.[activeIndex] || "";
@@ -556,7 +565,14 @@ function ProfileDetailInner({ id }: { id: string }) {
                 <div
                   ref={thumbScrollRef}
                   className="flex gap-2 overflow-x-auto scrollbar-hide min-w-0 scroll-smooth"
-                  style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+                  style={{
+                    scrollSnapType: "x mandatory",
+                    WebkitOverflowScrolling: "touch",
+                    // 흰 박스를 덮어씌우는 대신 썸네일 자체가 옅어지며 사라지게 한다 — "더 있다"는
+                    // 게 그림으로 직접 느껴져서 위에 올려둔 흰 그라데이션보다 자연스럽다.
+                    WebkitMaskImage: thumbMaskImage,
+                    maskImage: thumbMaskImage,
+                  }}
                 >
                   {visibleThumbs.map((src, i) => {
                     const idx = thumbStart + i;
@@ -594,18 +610,50 @@ function ProfileDetailInner({ id }: { id: string }) {
                   </button>
                 )}
               </div>
-              {/* 좌우 페이드 힌트 */}
-              {hasMoreThumbPages && (
-                <div className="pointer-events-none absolute right-8 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent" />
-              )}
-              {hasPrevThumbPage && (
-                <div className="pointer-events-none absolute left-8 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent" />
-              )}
             </div>
           )}
 
           {/* 메인 이미지 캐러셀 */}
           <div className="relative">
+            {/* 좌우 화살표 버튼 — 드래그/스와이프가 세로 스크롤과 헷갈릴 수 있어(현직자 피드백)
+                오작동 없이 확실하게 넘길 수 있는 수단을 별도로 둔다. 세로로 긴 원고는 버튼을
+                이미지 세로 중앙(absolute)에 고정하면 스크롤해서 내려간 동안 화면 밖으로
+                나가버려 있는지도 몰랐다 — sticky + 뷰포트 50%로 바꿔 스크롤을 따라다니게
+                하되, 이 컨테이너(이미지+캡션+점) 범위를 벗어나면 자연히 멈춘다. 이 블록을
+                이미지(trackRef)보다 먼저 두는 게 중요하다 — sticky는 자기 "제자리"(문서 흐름
+                상 위치)에서부터 그 자리를 지나 스크롤할 때 들러붙는데, 이미지 뒤에 두면
+                제자리가 이미지 맨 아래라 다 내려야만 나타난다. */}
+            {imageCount > 1 && (
+              <div className="sticky z-20 h-0 pointer-events-none" style={{ top: "50vh" }}>
+                <div className="flex items-center justify-between px-2 -translate-y-1/2">
+                  <div>
+                    {activeIndex > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => goTo(activeIndex - 1)}
+                        aria-label="이전 그림"
+                        className="pointer-events-auto w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                    )}
+                  </div>
+                  <div>
+                    {activeIndex < imageCount - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => goTo(activeIndex + 1)}
+                        aria-label="다음 그림"
+                        className="pointer-events-auto w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div
               ref={trackRef}
               className="relative w-full rounded-lg overflow-hidden select-none cursor-zoom-in"
@@ -658,29 +706,6 @@ function ProfileDetailInner({ id }: { id: string }) {
                 </div>
               )}
             </div>
-
-            {/* 좌우 화살표 버튼 — 드래그/스와이프가 세로 스크롤과 헷갈릴 수 있어(현직자 피드백)
-                오작동 없이 확실하게 넘길 수 있는 수단을 별도로 둔다. */}
-            {imageCount > 1 && activeIndex > 0 && (
-              <button
-                type="button"
-                onClick={() => goTo(activeIndex - 1)}
-                aria-label="이전 그림"
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
-              >
-                <ChevronLeft size={18} />
-              </button>
-            )}
-            {imageCount > 1 && activeIndex < imageCount - 1 && (
-              <button
-                type="button"
-                onClick={() => goTo(activeIndex + 1)}
-                aria-label="다음 그림"
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
-              >
-                <ChevronRight size={18} />
-              </button>
-            )}
 
             {/* 이미지 캡션 바 (하단) */}
             {currentCaption && (
