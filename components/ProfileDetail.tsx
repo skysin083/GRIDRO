@@ -292,7 +292,13 @@ function ProfileDetailInner({ id }: { id: string }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
   const draggingRef = useRef(false);
+  // 세로로 긴 원고를 내리려고 스크롤했는데 가로 드래그로 오인해 옆 그림으로 넘어가버리는
+  // 문제(현직자 피드백) — pointerdown 시점엔 아직 방향을 모르니 캡처를 미루고, 첫 move에서
+  // 가로/세로 중 뭐가 더 컸는지 본 뒤에만 가로 스와이프로 확정한다. 세로로 판정되면 이번
+  // 제스처 내내 손 떼기 전까지 무시해 브라우저의 기본 세로 스크롤에 그대로 맡긴다.
+  const gestureAxisRef = useRef<"x" | "y" | null>(null);
   // 스와이프 힌트: 첫 진입 시 한 번만 표시
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   // 아래 두 state는 "마지막으로 언제 맞췄는지"만 기억한다 — 실제 조정은 렌더 도중
@@ -367,18 +373,51 @@ function ProfileDetailInner({ id }: { id: string }) {
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // 방향을 아직 모르니 여기서는 포인터를 잡지 않는다 — 세로로 판정되면 브라우저의
+    // 기본 스크롤에 그대로 넘겨야 해서, 캡처는 가로로 확정된 뒤(handlePointerMove)에 한다.
     dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
+    gestureAxisRef.current = null;
     draggingRef.current = true;
-    setIsDragging(true);
   };
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!draggingRef.current || imageCount <= 1) return;
-    setDragOffset(e.clientX - dragStartX.current);
+    if (gestureAxisRef.current === "y") return; // 세로 스크롤로 확정 — 계속 무시
+
+    const dx = e.clientX - dragStartX.current;
+    const dy = e.clientY - dragStartY.current;
+
+    if (gestureAxisRef.current === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; // 방향을 판단하기엔 아직 너무 작다
+      if (Math.abs(dy) > Math.abs(dx)) {
+        gestureAxisRef.current = "y";
+        return;
+      }
+      gestureAxisRef.current = "x";
+      // 포인터 캡처는 실패해도(예: 이미 놓친 포인터) 드래그 자체는 계속 진행해야 한다.
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // no-op
+      }
+      setIsDragging(true);
+    }
+
+    setDragOffset(dx);
   };
+  const resetDragState = () => {
+    draggingRef.current = false;
+    gestureAxisRef.current = null;
+    setDragOffset(0);
+    setIsDragging(false);
+  };
+  const handlePointerCancel = () => resetDragState();
   const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!draggingRef.current) return;
-    draggingRef.current = false;
+    const axis = gestureAxisRef.current;
+    resetDragState();
+    if (axis === "y") return; // 세로 스크롤이었다 — 전환도 확대도 하지 않는다
+
     const moved = e.clientX - dragStartX.current;
     const width = trackRef.current?.offsetWidth || 1;
     const ratio = moved / width;
@@ -387,8 +426,6 @@ function ProfileDetailInner({ id }: { id: string }) {
     } else if (Math.abs(moved) < 6 && profile.images[activeIndex]) {
       setZoomOpen(true);
     }
-    setDragOffset(0);
-    setIsDragging(false);
   };
 
   const registerNaturalRatio = (index: number, img: HTMLImageElement | null) => {
@@ -580,7 +617,7 @@ function ProfileDetailInner({ id }: { id: string }) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={endDrag}
-              onPointerCancel={endDrag}
+              onPointerCancel={handlePointerCancel}
             >
               <div
                 className="flex items-start"
@@ -621,6 +658,29 @@ function ProfileDetailInner({ id }: { id: string }) {
                 </div>
               )}
             </div>
+
+            {/* 좌우 화살표 버튼 — 드래그/스와이프가 세로 스크롤과 헷갈릴 수 있어(현직자 피드백)
+                오작동 없이 확실하게 넘길 수 있는 수단을 별도로 둔다. */}
+            {imageCount > 1 && activeIndex > 0 && (
+              <button
+                type="button"
+                onClick={() => goTo(activeIndex - 1)}
+                aria-label="이전 그림"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            {imageCount > 1 && activeIndex < imageCount - 1 && (
+              <button
+                type="button"
+                onClick={() => goTo(activeIndex + 1)}
+                aria-label="다음 그림"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-sm transition-colors hover:bg-black/70"
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
 
             {/* 이미지 캡션 바 (하단) */}
             {currentCaption && (
