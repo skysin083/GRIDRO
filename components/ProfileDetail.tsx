@@ -229,7 +229,10 @@ function ScrollToTopButton() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-neutral-900/80 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-[.25s] hover:bg-neutral-900 hover:scale-110 print:hidden"
+      // 이미지 위에 뜨는 <>버튼(어두운 원)과 형태가 똑같아서 셋 다 같은 버튼처럼 보였다
+      // ("사진 넘기기"인지 "페이지 맨 위로"인지 구별이 안 됨) — 이건 이미지가 아니라
+      // 페이지 자체에 대한 동작이라, 흰 바탕 + 테두리로 확실히 다르게 만든다.
+      className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-white text-neutral-700 border border-neutral-200 flex items-center justify-center shadow-lg transition-all duration-[.25s] hover:border-neutral-400 hover:scale-110 print:hidden"
       aria-label="맨 위로"
     >
       <ChevronUp size={20} />
