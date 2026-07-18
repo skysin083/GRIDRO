@@ -470,16 +470,14 @@ function WritePageInner() {
                 </div>
               </Field>
 
-              {/* 작업 속도는 케이스마다 달라 표준 필드로 못 박는다는 반증이 있었으므로(묵해),
-                  구조화 대신 여기에 자유 기재하도록 예시로 유도한다.
-                  예시는 '작가 특징' 태그로 찍을 수 있는 것(수정 대응·연락·꼼꼼함)과 겹치지 않게,
-                  태그로 표현 못 하는 정량 수치와 협업 방식만 담는다. */}
+              {/* 소개는 작업 특이사항·자기소개·각오 같은 자유 기재 영역이다.
+                  태그로 표현 못 하는 작가 개인의 이야기를 담는다. */}
               <Field label="소개" id="field-bio">
                 <div className="relative">
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value.slice(0, 500))}
-                    placeholder="예) 컷당 3~4시간 정도 걸려요. 러프를 먼저 보여드리고 진행하는 편이에요"
+                    placeholder="예) 웹툰 채색 프리랜서 3년차입니다. 맡은 작업은 끝까지 책임지고, 마감은 반드시 지킵니다. 편하게 연락 주세요!"
                     maxLength={500}
                     rows={4}
                     className="w-full text-body-sm text-neutral-800 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-md px-4 py-[14px] pb-6 outline-none transition-colors duration-[.18s] hover:border-neutral-400 focus:border-primary-500 resize-none"
@@ -596,14 +594,14 @@ function WritePageInner() {
                 />
               </Field>
 
-              {/* 작성 동기("구체적으로 쓸수록...")를 caption 대신 입력칸 placeholder 안에 녹여
-                  입력 전 방향을 잡아준다 — 예시는 하나만, 다른 항목과 캡션 유무 표기 일관성을 맞춘다. */}
+              {/* 작가 특징 입력칸은 태그로 담기 어려운 구체적 작업 정보를 자유 기재하는 자리다.
+                  작업 시간·협업 방식 등 정량적 정보 예시로 유도한다. */}
               <Field label="작가 특징" id="field-authorTraits">
                 <TagSelect options={AUTHOR_TRAITS} selected={authorTraits} onChange={setAuthorTraits} />
                 <Input
                   value={authorTraitsNote}
                   onChange={(e) => setAuthorTraitsNote(e.target.value)}
-                  placeholder="구체적으로 쓸수록 구인자 눈에 띄어요. 예: 수정 대응 빠름"
+                  placeholder="예) 컷당 3~4시간 정도 걸려요. 러프를 먼저 보여드리고 진행하는 편이에요"
                   className="mt-3"
                 />
               </Field>
