@@ -70,7 +70,7 @@ export default function MultiSelect({ label, options, value, onChange, allLabel 
             style={{ position: "fixed", top: pos.top, left: pos.left }}
             onMouseDown={(e) => e.stopPropagation()}
             className={`z-50 rounded-lg border border-neutral-200 bg-white shadow-md p-1.5 ${
-              options.length >= 7 ? "w-56" : "w-44"
+              options.length >= 7 ? "w-72" : "w-44"
             }`}
           >
             {/* '전체' 리셋은 전체 너비 단독 배치 */}
@@ -103,7 +103,7 @@ export default function MultiSelect({ label, options, value, onChange, allLabel 
                     >
                       {checked && <Check size={10} className="text-white" />}
                     </span>
-                    {option}
+                    <span className="whitespace-nowrap">{option}</span>
                   </button>
                 );
               })}

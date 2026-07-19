@@ -82,6 +82,8 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
               src={resume.profile.images[resume.profile.coverIndex ?? 0]}
               alt={`${resume.profile.nickname} 대표 그림`}
               className="w-full h-full object-cover object-top"
+              loading="lazy"
+              decoding="async"
             />
           )}
         </div>

@@ -35,6 +35,8 @@ export default function ProfileCard({ profile, position }: { profile: Profile; p
               src={coverImage}
               alt={`${profile.nickname} 대표 그림`}
               className="w-full h-full object-cover object-top"
+              loading="lazy"
+              decoding="async"
             />
           )}
           {/* 흰 원형 배경 대신 상단에 옅은 검정 그라데이션을 깔아 아이콘 대비를 만든다.
