@@ -251,8 +251,6 @@ function ProfileDetailInner({ id }: { id: string }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
-  const [naturalRatios, setNaturalRatios] = useState<Record<number, number>>({});
-  const [trackWidth, setTrackWidth] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const dragStartX = useRef(0);
@@ -270,13 +268,6 @@ function ProfileDetailInner({ id }: { id: string }) {
   // 안 되는 값이라(react-hooks/refs) 여기선 못 쓰고, 비교용으로만 쓰는 state로 대신한다.
   const [hintTriggeredFor, setHintTriggeredFor] = useState<number | null>(null);
   const [coverSyncedFor, setCoverSyncedFor] = useState<string | null>(null);
-
-  useEffect(() => {
-    const updateWidth = () => setTrackWidth(trackRef.current?.offsetWidth || 0);
-    updateWidth();
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
 
   const ownResume = resumes.find((r) => r.id === id);
   const isOwnResume = ownResume !== undefined;
@@ -391,15 +382,6 @@ function ProfileDetailInner({ id }: { id: string }) {
       setZoomOpen(true);
     }
   };
-
-  const registerNaturalRatio = (index: number, img: HTMLImageElement | null) => {
-    if (!img || !img.complete || !img.naturalWidth) return;
-    const ratio = img.naturalHeight / img.naturalWidth;
-    setNaturalRatios((prev) => (prev[index] === ratio ? prev : { ...prev, [index]: ratio }));
-  };
-
-  const activeRatio = naturalRatios[activeIndex];
-  const trackHeight = activeRatio && trackWidth ? trackWidth * activeRatio : undefined;
 
   const thumbStart = thumbPage * THUMBS_PER_PAGE;
   const visibleThumbs = profile.images.slice(thumbStart, thumbStart + THUMBS_PER_PAGE);
@@ -544,7 +526,7 @@ function ProfileDetailInner({ id }: { id: string }) {
                         type="button"
                         onClick={() => goTo(idx)}
                         style={{ scrollSnapAlign: "start" }}
-                        className={`w-24 h-24 shrink-0 rounded-sm overflow-hidden border-2 transition-colors duration-[.18s] ${
+                        className={`flex-1 min-w-0 aspect-square rounded-sm overflow-hidden border-2 transition-colors duration-[.18s] ${
                           idx === activeIndex
                             ? "border-neutral-900 opacity-100"
                             : "border-transparent opacity-60 hover:opacity-100"
@@ -619,18 +601,27 @@ function ProfileDetailInner({ id }: { id: string }) {
             <div
               ref={trackRef}
               className="relative w-full rounded-lg overflow-hidden select-none cursor-zoom-in"
-              style={{
-                height: trackHeight,
-                touchAction: "pan-y",
-                transition: isDragging ? "none" : "height .25s cubic-bezier(.22,.61,.36,1)",
-              }}
+              style={{ touchAction: "pan-y" }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={endDrag}
               onPointerCancel={handlePointerCancel}
             >
+              {/* 보이지 않는 사이저 — naturalWidth/Height를 읽어 폭에 곱하는 계산 대신, 브라우저가
+                  실제로 그린 지금 이미지의 높이를 그대로 컨테이너 높이로 삼는다. 이미지 로드
+                  타이밍(캐시된 이미지의 onLoad 누락 등)에 좌우되지 않아 "짧은 그림 아래에
+                  큰 이미지 기준 여백이 남는" 부류의 버그가 구조적으로 나지 않는다. 다만
+                  height:auto라 예전처럼 높이가 부드럽게 애니메이션되진 않는다 — 정확성과
+                  맞바꿨다. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={profile.images[activeIndex]}
+                alt=""
+                aria-hidden="true"
+                className="w-full h-auto invisible block"
+              />
               <div
-                className="flex items-start"
+                className="absolute inset-0 flex items-start"
                 style={{
                   transform: `translateX(calc(${-activeIndex * 100}% + ${dragOffset}px))`,
                   transition: isDragging ? "none" : SLIDE_TRANSITION,
@@ -644,8 +635,6 @@ function ProfileDetailInner({ id }: { id: string }) {
                     alt={`${profile.nickname} 대표작 ${i + 1}`}
                     className="w-full h-auto block shrink-0"
                     draggable={false}
-                    ref={(el) => registerNaturalRatio(i, el)}
-                    onLoad={(e) => registerNaturalRatio(i, e.currentTarget)}
                   />
                 ))}
               </div>
