@@ -219,7 +219,10 @@ function ActionButtons({
 }
 
 // --- 맨 위로 스크롤 버튼 ---
-function ScrollToTopButton() {
+// 모바일 하단 고정 액션 바 높이가 내 이력서(버튼 2개+PDF 링크+안내문, 실측 약 184~198px)냐
+// 남의 이력서(컨택하기+북마크 한 줄, 실측 약 88px)냐에 따라 크게 달라져서, 고정값 하나(bottom-20)로는
+// 키 큰 내 이력서 바 위에 버튼이 파묻혔다. 두 케이스를 실제 모바일 화면에서 재서 각각 여유 있게 띄운다.
+function ScrollToTopButton({ isOwnResume }: { isOwnResume: boolean }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
@@ -234,7 +237,7 @@ function ScrollToTopButton() {
       // 이미지 위에 뜨는 <>버튼(어두운 원)과 형태가 똑같아서 셋 다 같은 버튼처럼 보였다
       // ("사진 넘기기"인지 "페이지 맨 위로"인지 구별이 안 됨) — 이건 이미지가 아니라
       // 페이지 자체에 대한 동작이라, 흰 바탕 + 테두리로 확실히 다르게 만든다.
-      className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-white text-neutral-700 border border-neutral-200 flex items-center justify-center shadow-lg transition-all duration-[.25s] hover:border-neutral-400 hover:scale-110 print:hidden"
+      className={`fixed ${isOwnResume ? "bottom-[220px]" : "bottom-28"} md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-white text-neutral-700 border border-neutral-200 flex items-center justify-center shadow-lg transition-all duration-[.25s] hover:border-neutral-400 hover:scale-110 print:hidden`}
       aria-label="맨 위로"
     >
       <ChevronUp size={20} />
@@ -731,7 +734,7 @@ function ProfileDetailInner({ id }: { id: string }) {
       </div>
 
       {/* 맨 위로 스크롤 버튼 */}
-      <ScrollToTopButton />
+      <ScrollToTopButton isOwnResume={isOwnResume} />
     </div>
   );
 }
