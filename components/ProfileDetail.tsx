@@ -38,6 +38,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 // --- 선호·불호 장르 분리 표시 ---
+// 제목 아래 Tag 칩(bg-primary-50 text-primary-700 등 색 채움)과 겹쳐 보이지 않도록
+// 여기는 테두리만 있는 아웃라인 스타일로 둔다 — 채움 색은 상단 칩의 몫으로 남겨둔다.
 function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; disliked: string[] }) {
   return (
     <>
@@ -48,7 +50,7 @@ function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; dis
             preferred.map((g) => (
               <span
                 key={g}
-                className="inline-block text-caption px-2 py-0.5 rounded-sm bg-primary-50 text-primary-700 font-medium"
+                className="inline-block text-caption px-2 py-0.5 rounded-sm border border-neutral-300 text-neutral-600 font-medium"
               >
                 {g}
               </span>
@@ -65,7 +67,7 @@ function GenrePreferenceRows({ preferred, disliked }: { preferred: string[]; dis
             {disliked.map((g) => (
               <span
                 key={g}
-                className="inline-block text-caption px-2 py-0.5 rounded-sm bg-red-50 text-red-600 font-medium"
+                className="inline-block text-caption px-2 py-0.5 rounded-sm border border-red-200 text-red-500 font-medium"
               >
                 {g}
               </span>
@@ -267,7 +269,6 @@ function ProfileDetailInner({ id }: { id: string }) {
   // 조건부로 한다(React가 권장하는 "렌더링 중 state 조정" 패턴). ref는 렌더 중 읽고 쓰면
   // 안 되는 값이라(react-hooks/refs) 여기선 못 쓰고, 비교용으로만 쓰는 state로 대신한다.
   const [hintTriggeredFor, setHintTriggeredFor] = useState<number | null>(null);
-  const [coverSyncedFor, setCoverSyncedFor] = useState<string | null>(null);
 
   const ownResume = resumes.find((r) => r.id === id);
   const isOwnResume = ownResume !== undefined;
@@ -297,15 +298,6 @@ function ProfileDetailInner({ id }: { id: string }) {
     return () => clearTimeout(timer);
   }, [showSwipeHint]);
 
-  // 대표(coverIndex)로 지정한 이미지부터 보여준다 — profile은 비동기로 도착하므로
-  // useState(0) 초기값에는 못 담고, 로드된 뒤 렌더 중에 한 번만 맞춰준다.
-  if (profile && coverSyncedFor !== profile.id) {
-    setCoverSyncedFor(profile.id);
-    const cover = profile.coverIndex ?? 0;
-    setActiveIndex(cover);
-    setThumbPage(Math.floor(cover / THUMBS_PER_PAGE));
-  }
-
   if (profileLoading) {
     return <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-20" />;
   }
@@ -319,7 +311,6 @@ function ProfileDetailInner({ id }: { id: string }) {
   }
 
   const imageCount = profile.images.length;
-  const coverIdx = profile.coverIndex ?? 0;
 
   const goTo = (index: number) => {
     const clamped = Math.max(0, Math.min(imageCount - 1, index));
@@ -508,7 +499,7 @@ function ProfileDetailInner({ id }: { id: string }) {
                 )}
                 <div
                   ref={thumbScrollRef}
-                  className="flex gap-2 overflow-x-auto scrollbar-hide min-w-0 scroll-smooth"
+                  className="flex gap-2 overflow-x-auto scrollbar-hide min-w-0 w-full scroll-smooth"
                   style={{
                     scrollSnapType: "x mandatory",
                     WebkitOverflowScrolling: "touch",
@@ -525,8 +516,11 @@ function ProfileDetailInner({ id }: { id: string }) {
                         key={`${src}-${idx}`}
                         type="button"
                         onClick={() => goTo(idx)}
-                        style={{ scrollSnapAlign: "start" }}
-                        className={`flex-1 min-w-0 aspect-square rounded-sm overflow-hidden border-2 transition-colors duration-[.18s] ${
+                        // flex-1로 폭을 나눠 가지면 5장 미만일 때 남는 공간을 서로 나눠 커져버린다.
+                        // 5장이 꽉 찼을 때 나오는 크기(전체 폭에서 gap 4개를 뺀 값의 1/5)로 고정해
+                        // 장수와 무관하게 항상 같은 크기를 유지하고, 남는 자리는 왼쪽 정렬로 비워둔다.
+                        style={{ scrollSnapAlign: "start", width: "calc((100% - 32px) / 5)" }}
+                        className={`shrink-0 aspect-square rounded-sm overflow-hidden border-2 transition-colors duration-[.18s] ${
                           idx === activeIndex
                             ? "border-neutral-900 opacity-100"
                             : "border-transparent opacity-60 hover:opacity-100"
@@ -684,19 +678,20 @@ function ProfileDetailInner({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* PDF 출력 전용 — 대표(coverIndex)로 지정한 그림을 크게, 나머지는 2열로 */}
+        {/* PDF 출력 전용 — coverIndex는 카드용 썸네일 전용 개념이라 여기선 안 쓴다.
+            사용자가 설정해둔 순서 그대로: 첫 번째 그림을 크게, 나머지는 2열로. */}
         <div className="hidden print:block space-y-4">
-          {profile.images[coverIdx] && (
+          {profile.images[0] && (
             <div className="break-inside-avoid">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={profile.images[coverIdx]} alt={`${profile.nickname} 대표작`} className="w-full h-auto" />
+              <img src={profile.images[0]} alt={`${profile.nickname} 대표작`} className="w-full h-auto" />
             </div>
           )}
           {profile.images.length > 1 && (
             <div className="grid grid-cols-2 gap-4">
               {profile.images
                 .map((src, i) => ({ src, i }))
-                .filter(({ i }) => i !== coverIdx)
+                .filter(({ i }) => i !== 0)
                 .map(({ src, i }) => (
                   <div key={src} className="break-inside-avoid">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
