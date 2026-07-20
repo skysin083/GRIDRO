@@ -82,7 +82,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           return (
             <div
               key={id}
-              className="toast-in pointer-events-auto w-full flex items-start gap-2 rounded-pill px-4 py-3 text-body-sm font-medium text-white shadow-sm"
+              // w-full로 두면 짧은 메시지도 컨테이너 최대폭(480px)까지 억지로 늘어나 빈 여백이
+              // 컸다. inline-flex + max-w-full로 짧으면 내용만큼만, 길면(모바일) 컨테이너 폭
+              // 안에서만 줄바꿈되게 한다.
+              className="toast-in pointer-events-auto inline-flex max-w-full items-start gap-2 rounded-pill px-4 py-3 text-body-sm font-medium text-white shadow-sm"
               style={{
                 opacity: dying ? 0 : 1,
                 transform: dying ? "translateY(-4px) scale(0.97)" : "translateY(0) scale(1)",

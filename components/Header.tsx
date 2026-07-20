@@ -110,11 +110,17 @@ export default function Header() {
               </Link>
             ) : (
               <div className="flex items-center gap-1.5 shrink-0">
-                {/* 탭 메뉴를 별도 줄로 뺀 덕분에 이 줄엔 다시 여유가 생겨 모바일에서도 두 버튼
-                    다 보여줄 수 있다(전엔 탭과 한 줄에서 경합해 하나를 숨겨야 했다). */}
-                <Button href="/login" variant="ghost" size="sm">
-                  로그인
-                </Button>
+                {/* BETA 배지가 로고 옆에 붙으면서 이 줄이 다시 빠듯해졌다(360px에서 배지+로그인+
+                    회원가입이 겹침 확인). 로그인·회원가입 둘 다 /login으로 가는 동일 버튼이라
+                    모바일에서는 회원가입 하나만 남기고 로그인은 sm 이상에서만 보여준다. */}
+                {/* Button 컴포넌트 자체에 inline-flex가 박혀 있어서 className으로 hidden을 넘기면
+                    Tailwind 유틸리티 등록 순서상 밀려 안 먹는다(className 문자열 순서와 무관) —
+                    감싸는 요소에 표시 여부를 맡긴다. */}
+                <span className="hidden sm:inline-flex">
+                  <Button href="/login" variant="ghost" size="sm">
+                    로그인
+                  </Button>
+                </span>
                 {/* 회원가입도 /login으로 보낸다 — 구글 OAuth 하나로 로그인·가입이 통합돼 있어 별도 폼이 없다. */}
                 <Button href="/login" variant="dark-pill" size="sm">
                   회원가입
