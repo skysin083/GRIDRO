@@ -219,10 +219,8 @@ function ActionButtons({
 }
 
 // --- 맨 위로 스크롤 버튼 ---
-// 모바일 하단 고정 액션 바 높이가 내 이력서(버튼 2개+PDF 링크+안내문, 실측 약 184~198px)냐
-// 남의 이력서(컨택하기+북마크 한 줄, 실측 약 88px)냐에 따라 크게 달라져서, 고정값 하나(bottom-20)로는
-// 키 큰 내 이력서 바 위에 버튼이 파묻혔다. 두 케이스를 실제 모바일 화면에서 재서 각각 여유 있게 띄운다.
-function ScrollToTopButton({ isOwnResume }: { isOwnResume: boolean }) {
+// 모바일에서는 하단 고정 액션 바와 겹치는 문제가 반복돼 데스크톱에서만 보여준다.
+function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
@@ -234,10 +232,7 @@ function ScrollToTopButton({ isOwnResume }: { isOwnResume: boolean }) {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      // 이미지 위에 뜨는 <>버튼(어두운 원)과 형태가 똑같아서 셋 다 같은 버튼처럼 보였다
-      // ("사진 넘기기"인지 "페이지 맨 위로"인지 구별이 안 됨) — 이건 이미지가 아니라
-      // 페이지 자체에 대한 동작이라, 흰 바탕 + 테두리로 확실히 다르게 만든다.
-      className={`fixed ${isOwnResume ? "bottom-[220px]" : "bottom-28"} md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-white text-neutral-700 border border-neutral-200 flex items-center justify-center shadow-lg transition-all duration-[.25s] hover:border-neutral-400 hover:scale-110 print:hidden`}
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 w-11 h-11 rounded-full bg-white text-neutral-700 border border-neutral-200 hidden md:flex items-center justify-center shadow-lg transition-all duration-[.25s] hover:border-neutral-400 hover:scale-110 print:hidden"
       aria-label="맨 위로"
     >
       <ChevronUp size={20} />
@@ -395,7 +390,11 @@ function ProfileDetailInner({ id }: { id: string }) {
   const currentCaption = profile.imageCaptions?.[activeIndex] || "";
 
   return (
-    <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-8 pb-24 md:pb-8">
+    // 모바일 하단 고정 바 높이가 내 이력서(버튼 2개+PDF 링크+안내문, 실측 약 184~198px)냐
+    // 남의 이력서(컨택하기+북마크 한 줄, 실측 약 88px)냐에 따라 크게 달라져서, 내 이력서에서는
+    // 컨텐츠 하단이 바에 가려졌다 — 케이스별로 여유 있게 띄운다. 데스크톱은 pb-24로 늘려
+    // "맨 위로" 버튼이 최하단 안내문과 겹치지 않을 여백을 확보한다.
+    <div className={`max-w-[1160px] mx-auto px-5 md:px-10 py-8 ${isOwnResume ? "pb-56" : "pb-24"} md:pb-24`}>
       <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] print:grid-cols-1 gap-12">
         <div className="space-y-4">
           <p className="text-[26px] leading-[1.45] font-bold text-neutral-900 line-clamp-2">{profile.intro}</p>
@@ -439,10 +438,9 @@ function ProfileDetailInner({ id }: { id: string }) {
               />
             </div>
           ) : (
-            <div
-              className="hidden md:block md:sticky md:top-16 z-10 print:hidden py-4"
-              style={{ background: "linear-gradient(180deg, transparent 0%, #fff 16%, #fff 84%, transparent 100%)" }}
-            >
+            // sticky로 고정된 뒤 위아래가 반투명 그라데이션이면 스크롤되는 뒤 텍스트가
+            // 버튼 영역 위로 비쳐 보였다 — 불투명 흰 배경 + 충분한 z-index로 완전히 가린다.
+            <div className="hidden md:block md:sticky md:top-16 z-20 bg-white print:hidden py-4">
               <ActionButtons
                 isOwnResume={isOwnResume}
                 isPublished={isPublished}
@@ -708,7 +706,7 @@ function ProfileDetailInner({ id }: { id: string }) {
 
       {/* AQ-3: 신고 안내 — 비-내 이력서, 인쇄 제외. 기존 의견 보내기 채널(AN-2) 겸용. */}
       {!isOwnResume && (
-        <p className="print:hidden text-caption text-neutral-400 text-center pb-6">
+        <p className="print:hidden text-caption text-neutral-400 text-center mt-4 pb-6">
           부적절한 콘텐츠인가요?{" "}
           <a
             href="https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header"
@@ -750,7 +748,7 @@ function ProfileDetailInner({ id }: { id: string }) {
       </div>
 
       {/* 맨 위로 스크롤 버튼 */}
-      <ScrollToTopButton isOwnResume={isOwnResume} />
+      <ScrollToTopButton />
     </div>
   );
 }

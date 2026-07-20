@@ -110,7 +110,7 @@ body {
 }
 @media (min-width: 900px) {
   .text-hero {
-    font-size: 46px;
+    font-size: 40px;
     line-height: 1.32;
   }
 }

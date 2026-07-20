@@ -159,11 +159,26 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
           <Button
             variant="primary"
             size="md"
-            className="w-full"
+            // flex-wrap: 카운트다운을 두 span으로 나누면 flex 아이템 두 개가 되는데,
+            // 기본 inline-flex는 줄바꿈을 안 해서 좁을 때 pill 밖으로 흘러넘쳤다.
+            className="w-full flex-wrap"
             disabled={onCooldown && !justBumped}
             onClick={handleBump}
           >
-            {justBumped ? "맨 위로 올렸어요" : onCooldown ? `끌올 가능까지 ${formatRemaining(remainingMs)}` : "끌올"}
+            {justBumped ? (
+              "맨 위로 올렸어요"
+            ) : onCooldown ? (
+              // "끌올 가능까지"와 "14시간 6분" 각각을 nowrap으로 묶어야 좁은 화면에서
+              // "가능까지"와 "14시간"이 갈라지는 대신 이 둘 사이에서만 줄바꿈된다.
+              <>
+                <span className="whitespace-nowrap">끌올 가능까지</span>{" "}
+                <span className="whitespace-nowrap font-semibold text-neutral-600">
+                  {formatRemaining(remainingMs)}
+                </span>
+              </>
+            ) : (
+              "끌올"
+            )}
           </Button>
         ) : (
           // 미완성이면 버튼은 눌리지만 토스트로 안내 — 보조 텍스트 줄을 없애 카드 높이를 줄인다

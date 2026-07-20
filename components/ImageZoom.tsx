@@ -63,7 +63,10 @@ export default function ImageZoom({ src, alt, onClose }: ImageZoomProps) {
         type="button"
         onClick={onClose}
         aria-label="닫기"
-        className="fixed top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-colors hover:bg-white/20"
+        // 배경이 밝은(흰) 원고가 스크롤로 버튼 밑까지 올라오면 반투명 흰 배경(bg-white/10)이
+        // 흰 이미지에 묻혀 버튼 자체가 안 보였다 — 뒤에 뭐가 오든 항상 보이도록 불투명한
+        // 어두운 배경으로 고정한다.
+        className="fixed top-4 right-4 z-10 w-10 h-10 rounded-full bg-neutral-900/80 text-white flex items-center justify-center transition-colors hover:bg-neutral-900/95"
       >
         <X size={20} />
       </button>

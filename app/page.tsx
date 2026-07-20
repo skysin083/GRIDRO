@@ -48,17 +48,16 @@ export default function LandingPage() {
               그림 프리랜서 구인구직 플랫폼&nbsp;<span className="text-primary-500 font-extrabold">그리드로</span>
             </span>
 
-            {/* UT: 3명이 이 페이지를 "가이드/설명 사이트"로 읽었는데, h1이 스스로를 '구직 가이드'라고
-                말하고 있었다. 여기서 만드는 것이 무엇인지(이력서)와 얼마나 걸리는지를 그대로 적는다. */}
-            {/* AP-5: <br> 폐기 — text-hero max-width:15em + word-break:keep-all이 의미 단위 줄바꿈을 유도한다 */}
             <h1 className="text-hero text-neutral-900">
-              <span className="text-primary-500">그림 프리랜서</span>를 위한 구직 이력서, 3분이면 끝나요.
+              <span className="text-primary-500">그림 프리랜서</span>를 위한
+              <br />
+              구직 가이드를 준비했어요.
             </h1>
 
             {/* "27명"은 재갈이 "너무 적어 보여"라고 했고, 묵찬은 "인원수보다 직업을 보여주는 게
                 훨씬 와닿을 것"이라고 했다 — 숫자를 빼면 두 지적이 같이 풀린다. */}
             {/* AP-3: <br> 폐기 — keep-all이 한글 단어 단위 줄바꿈을 보장하므로 자연스럽게 흐름 */}
-            <p className="text-[17px] leading-[1.6] text-neutral-500">
+            <p className="text-[16px] leading-[1.6] text-neutral-500">
               뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>{" "}
               현직 작가·프리랜서에게 직접 물어본 순서 그대로 정리해뒀어요.
             </p>
