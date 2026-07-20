@@ -56,10 +56,10 @@ export default function LandingPage() {
 
             {/* "27명"은 재갈이 "너무 적어 보여"라고 했고, 묵찬은 "인원수보다 직업을 보여주는 게
                 훨씬 와닿을 것"이라고 했다 — 숫자를 빼면 두 지적이 같이 풀린다. */}
-            {/* AP-3: <br> 폐기 — keep-all이 한글 단어 단위 줄바꿈을 보장하므로 자연스럽게 흐름 */}
             <p className="text-[16px] leading-[1.6] text-neutral-500">
-              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>{" "}
-              현직 작가·프리랜서에게 직접 물어본 순서 그대로 정리해뒀어요.
+              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>
+              <br />
+              현직 작가·프리랜서에게 직접 물어본 순서 그대로 정리해 뒀어요.
             </p>
 
             <div className="flex items-center gap-5 flex-wrap">

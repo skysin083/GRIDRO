@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useProfileStore } from "@/store/useProfileStore";
 import { fetchPublishedProfiles } from "@/lib/resumesApi";
 import { Profile } from "@/types/profile";
@@ -11,6 +11,23 @@ import FilterBar, { EMPTY_FEED_FILTERS, FeedFilters, matchesAllActiveFilters } f
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+
+const PAGE_SIZE = 20;
+
+// 전체 페이지가 많을 때 1 … 4 5 6 … 12 처럼 현재 페이지 주변 + 처음/끝만 남기고 나머지는 줄인다.
+function getPageNumbers(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const keep = new Set([1, total, current - 1, current, current + 1]);
+  const sorted = [...keep].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const result: (number | "…")[] = [];
+  let prev = 0;
+  for (const p of sorted) {
+    if (prev && p - prev > 1) result.push("…");
+    result.push(p);
+    prev = p;
+  }
+  return result;
+}
 
 // 카드 그리드와 같은 자리에서 로딩 중임을 알린다 — 안 그러면 서버 조회가 끝나기 전
 // "아직 등록된 이력서가 없어요"가 먼저 뜨어 오류가 난 줄 알기 쉽다(현직자 피드백).
@@ -35,6 +52,11 @@ export default function FeedPage() {
   // 전체 유저 대상 공개 이력서 — 로그인 여부와 무관하게 누구나 구직란을 볼 수 있어야 한다.
   const [publishedProfiles, setPublishedProfiles] = useState<Profile[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  // 필터 서명이 바뀐 걸 렌더 중에 감지해 페이지를 1로 되돌린다 — 안 그러면 필터링 후
+  // 목록이 짧아졌을 때 존재하지 않는 페이지에 멈춰 빈 화면을 보여줄 수 있다.
+  const [lastFiltersKey, setLastFiltersKey] = useState("");
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchPublishedProfiles()
@@ -52,6 +74,21 @@ export default function FeedPage() {
   const filtered = feed.filter((p) => matchesAllActiveFilters(p, filters));
 
   const hasActiveFilter = Object.values(filters).some((v) => (Array.isArray(v) ? v.length > 0 : v !== false));
+
+  const filtersKey = JSON.stringify(filters);
+  if (filtersKey !== lastFiltersKey) {
+    setLastFiltersKey(filtersKey);
+    setPage(1);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const goToPage = (next: number) => {
+    setPage(next);
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="max-w-[1160px] mx-auto px-5 md:px-10 py-14 space-y-8">
@@ -99,9 +136,9 @@ export default function FeedPage() {
       {feedLoading ? (
         <FeedSkeleton />
       ) : filtered.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          {filtered.map((profile, index) => (
-            <ProfileCard key={profile.id} profile={profile} position={index} />
+        <div ref={resultsRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 scroll-mt-24">
+          {paginated.map((profile, index) => (
+            <ProfileCard key={profile.id} profile={profile} position={(currentPage - 1) * PAGE_SIZE + index} />
           ))}
         </div>
       ) : (
@@ -121,12 +158,46 @@ export default function FeedPage() {
         </div>
       )}
 
-      {!feedLoading && filtered.length > 0 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <span className="w-9 h-9 rounded-md bg-neutral-900 text-white text-body-sm flex items-center justify-center">
-            1
-          </span>
-        </div>
+      {!feedLoading && totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-1.5 pt-4" aria-label="페이지네이션">
+          <button
+            type="button"
+            onClick={() => goToPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            aria-label="이전 페이지"
+            className="w-9 h-9 rounded-md flex items-center justify-center text-neutral-500 transition-colors hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          {getPageNumbers(currentPage, totalPages).map((p, i) =>
+            p === "…" ? (
+              <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-neutral-300">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                type="button"
+                onClick={() => goToPage(p)}
+                aria-current={p === currentPage ? "page" : undefined}
+                className={`w-9 h-9 rounded-md text-body-sm font-medium flex items-center justify-center transition-colors ${
+                  p === currentPage ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            aria-label="다음 페이지"
+            className="w-9 h-9 rounded-md flex items-center justify-center text-neutral-500 transition-colors hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </nav>
       )}
     </div>
   );
