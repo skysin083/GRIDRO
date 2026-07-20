@@ -6,6 +6,7 @@ import { MessageSquarePlus, User } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 
 const FEEDBACK_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header";
@@ -70,12 +71,16 @@ export default function Header() {
       <div className="max-w-[1160px] mx-auto px-5 md:px-10">
         <div className="h-14 md:h-16 flex items-center justify-between gap-4 md:gap-8">
           <div className="flex items-center gap-12 min-w-0">
-            <Link href="/" className="shrink-0 flex items-center">
-              {/* 로고 파일 교체 후에도 예전 캐시된 이미지가 계속 보이는 걸 막기 위해 버전 쿼리를 붙인다.
-                  교체할 때마다 이 값을 올릴 것. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg?v=3" alt="GRIDRO" className="h-5 w-auto" />
-            </Link>
+            <div className="shrink-0 flex items-center gap-1.5">
+              <Link href="/" className="flex items-center">
+                {/* 로고 파일 교체 후에도 예전 캐시된 이미지가 계속 보이는 걸 막기 위해 버전 쿼리를 붙인다.
+                    교체할 때마다 이 값을 올릴 것. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.svg?v=3" alt="GRIDRO" className="h-5 w-auto" />
+              </Link>
+              {/* AS-6: 미구현 기능이 많은 초기 배포임을 명시 — "만들어가는 중"으로 읽히게 */}
+              <Badge variant="primary">BETA</Badge>
+            </div>
             {renderTabs("hidden md:flex items-center gap-9")}
           </div>
 

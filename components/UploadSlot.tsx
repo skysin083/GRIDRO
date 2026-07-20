@@ -181,6 +181,8 @@ export default function UploadSlot({
           <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleInputChange} />
         </div>
       )}
+      {/* AQ-1: 성인물 업로드 금지 안내 — isFull 여부와 무관하게 항상 노출 */}
+      <p className="text-caption text-neutral-400">성인 콘텐츠(19금)는 업로드할 수 없어요.</p>
 
       {images.length > 0 && (
         <div className="space-y-2">

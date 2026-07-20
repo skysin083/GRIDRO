@@ -5,6 +5,9 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 
+const FEEDBACK_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header";
+
 // UT: "너무 설명적이다"(묵찬) · "3개 3개 3개 형식이 너무 많아, 불필요한 듯"(재갈) ·
 // "이거 설명인가요?"(이려원) — 3장짜리 카드 섹션이 셋이나 겹쳐 페이지가 설명서로 읽혔다.
 // 문제를 카드로 늘어놓던 섹션(PAINPOINTS)과 후기 섹션은 걷어내고, 남길 것만 남긴다.
@@ -34,8 +37,9 @@ export default function LandingPage() {
   return (
     <div>
       {/* I-2 히어로 */}
+      {/* AS-4: 모바일 히어로 상하 여백이 타이트하다는 피드백 — 기존 스페이싱 토큰 한 단계 위로 */}
       <section
-        className="pt-20 pb-16 md:pt-28 md:pb-24"
+        className="pt-24 pb-20 md:pt-28 md:pb-24"
         style={{ background: "linear-gradient(180deg, var(--color-primary-50) 0%, #FFF9F5 42%, var(--color-neutral-0) 100%)" }}
       >
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 grid md:grid-cols-[1.05fr_0.95fr] gap-14 md:gap-[56px] items-center">
@@ -46,17 +50,16 @@ export default function LandingPage() {
 
             {/* UT: 3명이 이 페이지를 "가이드/설명 사이트"로 읽었는데, h1이 스스로를 '구직 가이드'라고
                 말하고 있었다. 여기서 만드는 것이 무엇인지(이력서)와 얼마나 걸리는지를 그대로 적는다. */}
+            {/* AP-5: <br> 폐기 — text-hero max-width:15em + word-break:keep-all이 의미 단위 줄바꿈을 유도한다 */}
             <h1 className="text-hero text-neutral-900">
-              <span className="text-primary-500">그림 프리랜서</span>를 위한
-              <br />
-              구직 이력서, 3분이면 끝나요.
+              <span className="text-primary-500">그림 프리랜서</span>를 위한 구직 이력서, 3분이면 끝나요.
             </h1>
 
             {/* "27명"은 재갈이 "너무 적어 보여"라고 했고, 묵찬은 "인원수보다 직업을 보여주는 게
                 훨씬 와닿을 것"이라고 했다 — 숫자를 빼면 두 지적이 같이 풀린다. */}
+            {/* AP-3: <br> 폐기 — keep-all이 한글 단어 단위 줄바꿈을 보장하므로 자연스럽게 흐름 */}
             <p className="text-[17px] leading-[1.6] text-neutral-500">
-              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>
-              <br />
+              뭘 써야 할지 고민하지 마세요. <span className="text-neutral-800 font-bold">빈칸만 채우면 완성돼요.</span>{" "}
               현직 작가·프리랜서에게 직접 물어본 순서 그대로 정리해뒀어요.
             </p>
 
@@ -73,6 +76,19 @@ export default function LandingPage() {
                 먼저 둘러볼게요
               </Link>
             </div>
+
+            {/* AS-6: 미구현 기능이 많은 초기 배포임을 명시 — "부실"이 아니라 "만들어가는 중"으로 읽히도록 */}
+            <p className="text-caption text-neutral-400">
+              지금은 베타 기간이에요.{" "}
+              <a
+                href={FEEDBACK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-neutral-600"
+              >
+                불편한 점을 알려주시면 바로 반영할게요.
+              </a>
+            </p>
 
           </div>
 
@@ -139,9 +155,7 @@ export default function LandingPage() {
         <div className="max-w-[1160px] mx-auto px-5 md:px-10 grid md:grid-cols-2 gap-12 md:gap-[64px] items-center">
           <ScrollReveal>
             <h2 className="text-[25px] md:text-h2 font-extrabold tracking-[-0.03em] text-white">
-              써두는 것과 공개하는 것은
-              <br />
-              다른 일이에요.
+              써두는 것과 공개하는 것은 다른 일이에요.
             </h2>
             <p className="text-body leading-[1.75] text-neutral-400 mt-3">
               올리기 전까지 나만 보고, 올린 뒤에도 끌올 한 번이면 다시 맨 위로.

@@ -72,6 +72,19 @@
   --dur-reveal: 0.7s;
 }
 
+/* AS-2: body에만 걸어두면 토스트·버튼·배지 같은 요소가 새로 생길 때마다 다시 빠질 수 있다.
+   예외 없는 전역 규칙으로 강제하고, keep-all이 부적절한 곳(코드/URL)만 opt-out한다. */
+* {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+code,
+pre {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
 body {
   background: var(--color-neutral-0);
   color: var(--color-neutral-800);
@@ -79,10 +92,21 @@ body {
 }
 
 .text-hero {
-  font-size: 34px;
+  /* AP-5: 320px에서 "끝나요."가 3번째 줄에 고립되지 않도록 모바일 전용 스케일 다운 */
+  font-size: 28px;
   line-height: 1.35;
   font-weight: 800;
   letter-spacing: -0.035em;
+}
+@media (min-width: 360px) {
+  .text-hero {
+    font-size: 30px;
+  }
+}
+@media (min-width: 390px) {
+  .text-hero {
+    font-size: 34px;
+  }
 }
 @media (min-width: 900px) {
   .text-hero {

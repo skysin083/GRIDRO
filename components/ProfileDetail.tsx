@@ -706,6 +706,22 @@ function ProfileDetailInner({ id }: { id: string }) {
         </div>
       </div>
 
+      {/* AQ-3: 신고 안내 — 비-내 이력서, 인쇄 제외. 기존 의견 보내기 채널(AN-2) 겸용. */}
+      {!isOwnResume && (
+        <p className="print:hidden text-caption text-neutral-400 text-center pb-6">
+          부적절한 콘텐츠인가요?{" "}
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdSwJGKrL3EPtypo_AZP2QOpiycC9Lx_G6bFC74jFiDWcfIBg/viewform?usp=header"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            의견 보내기
+          </a>
+          로 알려주세요.
+        </p>
+      )}
+
       {showContact && <ContactModal email={profile.email} onClose={() => setShowContact(false)} />}
       {confirmModal}
 

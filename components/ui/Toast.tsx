@@ -74,14 +74,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="print:hidden pointer-events-none fixed top-20 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2 px-4"
+        className="print:hidden pointer-events-none fixed top-20 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
+        style={{ width: "calc(100vw - 40px)", maxWidth: "480px" }}
       >
         {toasts.map(({ id, message, variant, dying }) => {
           const Icon = VARIANT_ICON[variant];
           return (
             <div
               key={id}
-              className="toast-in pointer-events-auto flex items-center gap-2 rounded-pill px-4 py-2.5 text-body-sm font-medium text-white shadow-sm"
+              className="toast-in pointer-events-auto w-full flex items-start gap-2 rounded-pill px-4 py-3 text-body-sm font-medium text-white shadow-sm"
               style={{
                 opacity: dying ? 0 : 1,
                 transform: dying ? "translateY(-4px) scale(0.97)" : "translateY(0) scale(1)",
@@ -94,7 +95,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 WebkitBackdropFilter: "blur(8px)",
               }}
             >
-              <Icon size={15} className={`shrink-0 ${VARIANT_ICON_CLASS[variant]}`} />
+              <Icon size={15} className={`shrink-0 mt-[2px] ${VARIANT_ICON_CLASS[variant]}`} />
               <span>{message}</span>
             </div>
           );
