@@ -23,13 +23,11 @@ const GUIDE_POINTS = [
         <span className="text-neutral-800 font-bold">필수 항목만 채우면 3분이면 끝나요.</span>
       </>
     ),
-    fine: "작업 파트 → 대표 그림 → 장르 → 근무조건",
   },
   {
     title: "구인자가 보는 순서 그대로",
     description:
       "현직 작가·프리랜서에게 '가장 먼저 확인하는 게 뭐냐'고 직접 물었어요. 답변에 나온 순서 그대로 폼을 짰어요.",
-    fine: "공정 → 그림 → 장르 → 근무조건",
   },
 ];
 
@@ -137,11 +135,6 @@ export default function LandingPage() {
                 <div className="h-full bg-white border border-neutral-200 rounded-lg px-8 py-7 flex flex-col">
                   <h3 className="text-h3 font-bold text-neutral-900">{point.title}</h3>
                   <p className="text-body leading-[1.72] text-neutral-500 mt-2">{point.description}</p>
-                  <div className="mt-auto pt-5">
-                    <div className="border-t border-dashed border-neutral-200 pt-3">
-                      <p className="text-caption font-semibold text-neutral-400">{point.fine}</p>
-                    </div>
-                  </div>
                 </div>
               </ScrollReveal>
             ))}
@@ -195,7 +188,10 @@ export default function LandingPage() {
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-body-sm font-medium text-white bg-primary-500 px-3 py-1.5 rounded-pill">끌올</span>
+                    <p className="text-[15px] font-bold text-white">끌올</p>
+                    <span className="text-caption font-medium text-white bg-primary-500 px-2 py-0.5 rounded-pill">
+                      48시간마다
+                    </span>
                   </div>
                   <p className="text-caption text-neutral-400 mt-1">48시간마다 한 번, 피드 맨 위로 올라가요</p>
                 </div>
@@ -230,7 +226,6 @@ export default function LandingPage() {
               >
                 구직 하러가기
               </Button>
-              <p className="text-caption text-neutral-400">회원가입 없이 먼저 둘러볼 수 있어요</p>
             </div>
           </ScrollReveal>
         </div>
@@ -242,7 +237,6 @@ export default function LandingPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg?v=3" alt="GRIDRO" className="h-4 w-auto" />
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-body-sm text-neutral-400">그림 프리랜서 구인구직 플랫폼 · 2026</span>
             <Link href="/privacy" className="text-body-sm text-neutral-400 hover:text-neutral-600 transition-colors">
               개인정보처리방침
             </Link>
