@@ -85,6 +85,18 @@ pre {
   overflow-wrap: anywhere;
 }
 
+/* 데스크탑에선 숨겨두고(한 줄), 모바일 폭에서만 <br class="break-mobile">이 실제로
+   줄을 끊게 만드는 opt-in 줄바꿈 — <br>은 display 값과 무관하게 UA가 줄바꿈으로
+   취급하므로 display:none으로만 꺼두면 된다. */
+.break-mobile {
+  display: none;
+}
+@media (max-width: 480px) {
+  .break-mobile {
+    display: inline;
+  }
+}
+
 body {
   background: var(--color-neutral-0);
   color: var(--color-neutral-800);

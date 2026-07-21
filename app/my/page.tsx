@@ -49,7 +49,19 @@ export default function MyPage() {
               >
                 <Plus size={24} />
                 <span className="text-body-sm font-medium">새 이력서 작성</span>
-                <span className="text-caption text-neutral-400">3분이면 첫 이력서를 만들 수 있어요</span>
+                {/* 이력서가 이미 있으면 "첫 이력서" 문구가 어색해 개수에 따라 문구를 나눈다.
+                    break-mobile은 모바일 폭에서만 지정한 어절 경계에서 줄바꿈시킨다(데스크탑은 한 줄). */}
+                <span className="text-caption text-neutral-400 text-center">
+                  {resumes.length === 0 ? (
+                    <>
+                      3분이면 첫 이력서를 <br className="break-mobile" />만들 수 있어요
+                    </>
+                  ) : (
+                    <>
+                      다른 버전의 이력서도 <br className="break-mobile" />만들어보세요
+                    </>
+                  )}
+                </span>
               </button>
             ) : (
               <div className="w-full min-h-[360px] flex flex-col items-center justify-center gap-2 rounded-lg bg-neutral-100 text-neutral-400 text-center px-4">

@@ -60,7 +60,7 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
   const handleBump = () => {
     const publishedAt = resume.profile.publishedAt;
     const hoursSincePublish = publishedAt ? (Date.now() - publishedAt) / (60 * 60 * 1000) : 0;
-    track("bump_clicked", { hours_since_publish: Math.round(hoursSincePublish * 10) / 10 });
+    track("pull_up_clicked", { hours_since_publish: Math.round(hoursSincePublish * 10) / 10 });
     onBump();
     setJustBumped(true);
     setTimeout(() => setJustBumped(false), 2000);
