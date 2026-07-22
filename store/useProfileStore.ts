@@ -123,6 +123,13 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
     // publishedAt = "공개한 시각" = "끌올한 시각" (같은 의미, 별도 필드 두지 않는다).
     // B방식: 쿨다운 중이면 publishedAt을 갱신하지 않아 피드 순서가 바뀌지 않는다.
     //         쿨다운이 끝났으면 lastActivityAt + publishedAt 모두 갱신해 피드 맨 위로 올린다.
+    //
+    // AT-1(버그수정): publishedAt은 피드 정렬 기준이자 쿨다운 판정 기준이라, 노출 여부(isPublished)
+    // 토글로는 절대 지워선 안 된다 — 예전엔 비공개 전환 시 publishedAt을 null로 지웠는데,
+    // 그 뒤 쿨다운 중 재공개(바로 아래 onCooldown 분기)가 "유지"하려던 값이 이미 null이 되어 있어
+    // 결과적으로 null로 덮어써졌다. 이 null은 hydrateFromRemote의 lastActivityAt 재계산(max)에도
+    // 반영되어, 새로고침/재로그인 시 쿨다운 자체가 통째로 풀리는 문제로 이어졌다 — 비공개↔재공개를
+    // 반복하면 48시간 쿨다운을 무한히 우회해 피드 최상단으로 올라갈 수 있었다.
     publishResume: async (id) => {
       const now = Date.now();
       const remaining = getRemainingCooldownMs(get().lastActivityAt, now);
@@ -142,18 +149,18 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
               },
             };
           }
-          // 다른 공개 이력서는 비공개 처리
-          if (r.isPublished) return { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } };
+          // 다른 공개 이력서는 노출만 끈다 — publishedAt(끌올 시각)은 그대로 둬서
+          // 나중에 이 이력서를 다시 공개할 때 원래 정렬 위치로 복귀할 수 있게 한다.
+          if (r.isPublished) return { ...r, isPublished: false };
           return r;
         }),
       });
       await syncResumesToRemote(get().resumes);
     },
     unpublishResume: async (id) => {
+      // publishedAt(끌올 시각)은 정렬·쿨다운 기준이므로 비공개 전환으로 지우지 않는다.
       set({
-        resumes: get().resumes.map((r) =>
-          r.id === id ? { ...r, isPublished: false, profile: { ...r.profile, publishedAt: null } } : r
-        ),
+        resumes: get().resumes.map((r) => (r.id === id ? { ...r, isPublished: false } : r)),
       });
       await syncResumesToRemote(get().resumes);
     },

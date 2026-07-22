@@ -399,10 +399,12 @@ function ProfileDetailInner({ id }: { id: string }) {
         <div className="space-y-4">
           <p className="text-[26px] leading-[1.45] font-bold text-neutral-900 line-clamp-2">{profile.intro}</p>
 
-          {/* 닉네임 / 공개 시기 — 시각 계층 강화 */}
+          {/* 닉네임 / 공개 시기 — 시각 계층 강화.
+              AT-1: publishedAt(끌올 시각)이 이제 비공개 전환 후에도 남아있으므로, 남의 프로필(항상
+              공개된 것만 조회 가능)과 달리 내 프로필은 현재 비공개 상태면 이 배지를 숨겨야 한다. */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[15px] font-bold text-neutral-900">{profile.nickname}</span>
-            {profile.publishedAt && (
+            {profile.publishedAt && (!isOwnResume || isPublished) && (
               <span className="text-caption text-neutral-400">{formatRelativeTime(profile.publishedAt)} 공개</span>
             )}
           </div>

@@ -58,9 +58,17 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
   const complete = isProfileComplete(resume.profile);
 
   const handleBump = () => {
+    // AT-2: 쿨다운 중 클릭도 계측한다(is_success:false) — 실패 자체가 리텐션 마찰의 신호다.
+    // justBumped 유예 중엔 onCooldown이어도 성공으로 취급(버튼이 실제로 눌리는 경우라 아래
+    // disabled 판정과 기준을 맞춘다).
+    if (onCooldown && !justBumped) {
+      track("pull_up_clicked", { is_success: false });
+      toast.show(`끌올 가능까지 ${formatRemaining(remainingMs)} 남았어요`, "info");
+      return;
+    }
     const publishedAt = resume.profile.publishedAt;
     const hoursSincePublish = publishedAt ? (Date.now() - publishedAt) / (60 * 60 * 1000) : 0;
-    track("pull_up_clicked", { hours_since_publish: Math.round(hoursSincePublish * 10) / 10 });
+    track("pull_up_clicked", { is_success: true, hours_since_publish: Math.round(hoursSincePublish * 10) / 10 });
     onBump();
     setJustBumped(true);
     setTimeout(() => setJustBumped(false), 2000);
@@ -161,8 +169,12 @@ export default function ResumeCard({ resume, onEdit, onDelete, onRequestPublish,
             size="md"
             // flex-wrap: 카운트다운을 두 span으로 나누면 flex 아이템 두 개가 되는데,
             // 기본 inline-flex는 줄바꿈을 안 해서 좁을 때 pill 밖으로 흘러넘쳤다.
-            className="w-full flex-wrap"
-            disabled={onCooldown && !justBumped}
+            // AT-2: 네이티브 disabled는 클릭 이벤트 자체를 막아 "쿨다운 중 시도" 계측이 불가능했다.
+            // disabled를 걷어내고 handleBump 안에서 직접 분기하는 대신, 기존 disabled 룩(Button의
+            // disabled: 유틸리티)을 !important로 복제해 시각적으로는 동일하게 보이게 한다.
+            className={`w-full flex-wrap ${
+              onCooldown && !justBumped ? "!bg-neutral-200 !text-neutral-400 hover:!bg-neutral-200 cursor-not-allowed" : ""
+            }`}
             onClick={handleBump}
           >
             {justBumped ? (
