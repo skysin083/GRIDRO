@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 import { saveAuthNext } from "@/lib/authRedirect";
+import { isLikelyInAppBrowser } from "@/lib/inAppBrowser";
 import { track } from "@/lib/mixpanel";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -30,6 +31,18 @@ function LoginPageInner() {
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
   const next = searchParams.get("next") ?? "/my";
+  // AU-1: 트위터 등 인앱 브라우저에서는 Google이 OAuth 자체를 차단한다(disallowed_useragent) —
+  // 버튼을 눌러도 항상 실패한다. 트위터(t.co) 쪽은 UA로 못 잡고 리퍼러로만 추정 가능해
+  // (lib/inAppBrowser.ts 참고) 오탐 가능성이 있으므로, 버튼을 없애는 대신 위에 안내만
+  // 덧붙인다 — 오탐이어도 버튼은 그대로 눌러서 로그인할 수 있다.
+  // navigator/document는 서버에 없어 값이 서버/클라이언트 간 다를 수 있는 전형적인 케이스라
+  // useSyncExternalStore로 읽는다 — 서버 스냅샷은 항상 false라 하이드레이션 불일치가 안 난다.
+  // 값 자체가 마운트 중 변할 일이 없어 구독은 no-op으로 둔다.
+  const inAppBrowser = useSyncExternalStore(
+    () => () => {},
+    () => isLikelyInAppBrowser(),
+    () => false
+  );
 
   // 이미 로그인된 상태로 /login에 들어오면(뒤로가기 등) 바로 목적지로 보낸다.
   useEffect(() => {
@@ -68,6 +81,18 @@ function LoginPageInner() {
         <Card hover="none" className="w-full max-w-none md:max-w-[400px] py-10 px-8 text-center">
           <h1 className="text-h1 font-bold text-neutral-900 mb-3">로그인</h1>
           <p className="text-body-sm text-neutral-500 mb-6">Google 계정으로 간편하게 시작하세요</p>
+          {inAppBrowser && (
+            <div className="rounded-md bg-primary-50 border border-primary-200 px-4 py-3 text-left space-y-1 mb-3">
+              <p className="text-body-sm font-semibold text-primary-700">
+                지금 보고 계신 앱 내 브라우저에서는 Google 로그인이 제한될 수 있어요
+              </p>
+              <p className="text-caption text-primary-600">
+                로그인이 안 되면 우측 상단 <span className="font-semibold">&lsquo;···&rsquo;</span> 또는 공유
+                버튼에서 <span className="font-semibold">&lsquo;Safari(다른 브라우저)에서 열기&rsquo;</span>를
+                선택한 뒤 다시 시도해 주세요.
+              </p>
+            </div>
+          )}
           <Button variant="outline" size="lg" className="w-full gap-2" onClick={handleGoogleLogin}>
             <GoogleIcon />
             Google로 계속하기
